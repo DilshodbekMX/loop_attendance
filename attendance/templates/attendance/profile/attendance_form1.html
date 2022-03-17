@@ -1,0 +1,73 @@
+{% extends 'attendance/profile/base_user.html' %}
+{% block title %}Welcome {{ school.principal_name }}{% endblock %}
+{% load static %}
+<style>
+    .align li{
+        list-style: none;
+        float: left;
+        margin-right: 20px;
+    }
+</style>
+{% block content %}
+<div class="content-wrapper">
+    <div class="row">
+<!-- -------------------------------------------------------------------------- -->
+
+  <center><h1>{{class_school.class_type}} Davomati:</h1></center>
+  <center><h3>{{ date }}</h3></center>
+<p></p><br>
+{% if error %}
+  <p><strong>{{ error }}</strong></p>
+{% endif %}
+
+<div class="col-lg-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="card-title" align="center">O'quvchilar ro'yxati</h2>
+        <div class="table-responsive">
+            <form method="POST" class="post-form">
+                {{ formset.management_form }}
+                {% csrf_token %}
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>familiyasi</th>
+     
+                        
+                            <th>Davomat olish</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student,form in list %}              
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{student.student_name}}</td>
+                                
+                        
+                                <td class="align">
+                                    {% for radio in form %}
+                                        {{ radio }}
+                                    {% endfor %}
+                                </td>
+                        
+                            </tr>
+                        {%endfor %}
+                    </tbody>
+                </table>
+                <button type="submit" class="save btn btn-default" style="cursor: pointer">Save</button>
+            </form>
+        </div>
+      </div>
+    </div>
+  </div>
+<script language="JavaScript">
+    $("input[value=Bor]").prop('checked',true);
+</script>
+
+<!-- -------------------------------------------------------------------------- -->
+
+    </div>
+</div>
+
+{% endblock %}

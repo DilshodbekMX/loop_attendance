@@ -1,0 +1,522 @@
+{% extends 'attendance/dashboard/base_admin.html' %}
+{% load static %}
+
+
+{% block content %}
+<style>
+  .sr-only {
+top: -30em;
+}
+
+table.sortable th {
+position: relative;
+}
+
+table.sortable th button {
+
+font-size: 100%;
+font-weight: bold;
+background: transparent;
+border: none;
+display: inline;
+right: 0;
+left: 0;
+top: 0;
+bottom: 0;
+
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+<div class="content-wrapper pb-0">
+  <!-- Username -->
+
+ <div class="row">
+  <!-- chap tomondagi to'rtburchaklar -->
+  <div class="col-xl-3 col-lg-12 stretch-card grid-margin">
+    <div class="row">
+      <h3 align="center" class="mb-0">Sana: {{date|date:' d/m/Y'}}</h3>
+      <!-- Jami o'quvchilar -->
+      <div class="col-xl-12 col-md-6 stretch-card grid-margin grid-margin-sm-0 pb-sm-3">
+        
+        <div class="card bg-info">
+          <div class="card-body px-3 py-2">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="color-card">
+                <h3 class="text-blue">Jami o'quvchilar<br>{{students.count}} ta</h3>
+                <h1 class="text-blue mt-4" align="center">100 %
+                </h1>
+              </div>
+              <i class="card-icon-indicator mdi mdi-basket bg-inverse-icon-info"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Bugun maktabga kelganlar -->
+      <div class="col-xl-12 col-md-6 stretch-card grid-margin grid-margin-sm-0 pb-sm-3">
+        <div class="card bg-success">
+          <div class="card-body px-3 py-2">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="color-card">
+                <h3 class="text-blue">Maktabga kelganlar<br> {{total_present}} ta</h3>
+                <h1 class="text-blue" align="center">{{p_percent}} %  
+                </h1>
+              </div>
+              <i class="card-icon-indicator mdi mdi-cube-outline bg-inverse-icon-success"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Dars sababli qoldirganlar -->
+      <div class="col-xl-12 col-md-6 stretch-card grid-margin grid-margin-sm-0 pb-sm-3 pb-lg-0 pb-xl-3">
+        <div class="card bg-warning">
+          <div class="card-body px-3 py-2">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="color-card">
+                <h3 class="text-blue">Sababli qoldirganlar:<br>{{total_cause}} ta</h3>
+                <h1 class="text-blue mt-4" align="center">{{c_percent}} %
+                </h1>
+              </div>
+              <i class="card-icon-indicator mdi mdi-briefcase-outline bg-inverse-icon-warning"></i>
+            </div>
+        
+          </div>
+        </div>
+      </div>
+      <!-- kechagiga nisbatan o'zgarish-->
+      <div class="col-xl-12 col-md-6 stretch-card grid-margin grid-margin-sm-0 pb-sm-3 pb-lg-0 pb-xl-3">
+        <div class="card bg-danger">
+          <div class="card-body px-3 py-2">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="color-card">
+                <h3 class="text-blue">Sababsiz qoldirganlar:<br>{{total_absent}} ta</h3>
+                <h1 class="text-blue mt-4" align="center">{{a_percent}} %
+                </h1>
+              </div>
+              <i class="card-icon-indicator mdi mdi-briefcase-outline bg-inverse-icon-danger"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Hisobot -->
+  <div class="col-xl-9 stretch-card grid-margin">
+    <div class="card">
+      <div class="card-body">
+        <!-- Card sarlavha -->
+        <div class="row">
+          <div class="col-sm-7">
+            <h4 class="card-title">{{date_label.0|safe}} - {{date|date:'d/m/Y'}}  sanalar oralig'idagi hisobot</h4>
+  
+          </div>
+
+        </div>
+        <div class="row">
+          <div class="col-lg-12 grid-margin stretch-card">
+          <!-- eng yaxshi davomat -->
+          <div class="col-sm-4">
+            <div class="card mb-3 mb-sm-0">
+              <div class="card-body py-3 px-4">
+                <p class="m-0 survey-head">Haftada</p>
+                <div class="d-flex justify-content-between align-items-end flot-bar-wrapper">
+                  <div>
+                    <h3 class="m-0 survey-value">{{wp_percent}} %</h3>
+                    <p class="text-success m-0">o'quvchi darsga qatnashdi</p>
+                  </div>
+                  <div id="earningChart" class="flot-chart"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- eng past davomat -->
+          <div class="col-sm-4">
+            <div class="card mb-3 mb-sm-0">
+              <div class="card-body py-3 px-4">
+                <p class="m-0 survey-head">Haftada</p>
+                <div class="d-flex justify-content-between align-items-end flot-bar-wrapper">
+                  <div>
+                    <h3 class="m-0 survey-value">{{wc_percent}} %</h3>
+                    <p class="text-warning m-0">o'quvchi sababli dars qoldirdi</p>
+                  </div>
+                  <div id="productChart" class="flot-chart"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="card">
+              <div class="card-body py-3 px-4">
+                <p class="m-0 survey-head">Haftada</p>
+                <div class="d-flex justify-content-between align-items-end flot-bar-wrapper">
+                  <div>
+                    <h3 class="m-0 survey-value">{{wa_percent}} %</h3>
+                    <p class="text-danger m-0">o'quvchi sababsiz dars qoldirdi</p>
+                  </div>
+                  <div id="orderChart" class="flot-chart"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-12 grid-margin stretch-card">
+          <div class="card">
+            <div class="card-body"><div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
+              <canvas id="myChart" style="height: 166px; display: block; width: 332px;" width="332" height="166" class="chartjs-render-monitor"></canvas>            
+            </div>
+
+            <button type="button" class="btn btn-outline-info btn-fw" onclick="timeFrame(this)" value="week">
+              <i class="mdi mdi-calendar-text btn-icon-prepend"></i>Haftalik Hisobot</button>
+              <button type="button" class="btn btn-outline-primary btn-fw" onclick="timeFrame(this)" value='month'>
+              <i class="mdi mdi-calendar-today btn-icon-prepend"></i> Oylik Hisobot </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-xl-12 col-sm-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body px-0 overflow-auto">
+        <div class="page-header flex-wrap">
+        <h4 class="card-title pl-4">Davomat Bo'yicha Maktablarning Haftalik Reytingi: </h4>
+        <div class="d-flex mr-4"><input class="form-control" type="text" id="myInput" onkeyup="myFunction()" placeholder="maktab nomi.." title="Type in a name"></div>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="table table-bordered sortable" id="myTable">
+            <thead class="bg-light">
+              <tr>
+                <th>#</th>
+                <th><button>Maktab Nomi
+                </button></th>
+                <th>Jami O'quvchi</th>
+
+                <th>Sababli qatnashmaganlar</th>
+                <th>Sababsiz qatnashmaganlar</th>
+                <th class="num"><button>Haftalik Ko'rsatkichi</button></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s_name, s_a_student, s_t_p, s_t_c, s_t_a, s_t_pp, s_t_cp, s_t_ap in school_list %}
+              {% if s_t_pp > 90 %}
+              <tr class="table-succes">
+                <td>{{forloop.counter}}</td>
+                </td>
+                <td>{{s_name}}</td>
+                <td>{{s_a_student}}</td>
+                <td>{{s_t_c}} ta | {{s_t_cp}} %</td>
+                <td >{{s_t_a}} ta | {{s_t_ap}} %</td>
+                <td class="num">{{s_t_pp}} %</td>
+              </tr>
+              {% elif s_t_pp < 90 and s_t_pp > 75 %}
+              <tr class="table-warning">
+                <td>{{forloop.counter}}</td>
+                </td>
+                <td>{{s_name}}</td>
+                <td>{{s_a_student}}</td>
+                <td>{{s_t_c}} ta | {{s_t_cp}} %</td>
+                <td >{{s_t_a}} ta | {{s_t_ap}} %</td>
+                <td class="num">{{s_t_pp}} %</td>
+              </tr>
+              {% else %}
+              <tr class="table-danger">
+                <td>{{forloop.counter}}</td>
+                </td>
+                <td>{{s_name}}</td>
+                <td>{{s_a_student}}</td>
+                <td>{{s_t_c}} ta | {{s_t_cp}} %</td>
+                <td >{{s_t_a}} ta | {{s_t_ap}} %</td>
+                <td class="num">{{s_t_pp}} %</td>
+              </tr>
+              {%endif%}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+<script>
+  function myFunction() {
+    var input, filter, table, tr, td, i, txtValue;
+    input = document.getElementById("myInput");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("myTable");
+    tr = table.getElementsByTagName("tr");
+    for (i = 0; i < tr.length; i++) {
+      td = tr[i].getElementsByTagName("td")[0];
+      if (td) {
+        txtValue = td.textContent || td.innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
+        }
+      }       
+    }
+  }
+  </script>
+<script>
+
+
+'use strict';
+
+class SortableTable {
+constructor(tableNode) {
+ this.tableNode = tableNode;
+
+ this.columnHeaders = tableNode.querySelectorAll('thead th');
+
+ this.sortColumns = [];
+
+ for (var i = 0; i < this.columnHeaders.length; i++) {
+   var ch = this.columnHeaders[i];
+   var buttonNode = ch.querySelector('button');
+   if (buttonNode) {
+     this.sortColumns.push(i);
+     buttonNode.setAttribute('data-column-index', i);
+     buttonNode.addEventListener('click', this.handleClick.bind(this));
+   }
+ }
+
+ this.optionCheckbox = document.querySelector(
+   'input[type="checkbox"][value="show-unsorted-icon"]'
+ );
+
+ if (this.optionCheckbox) {
+   this.optionCheckbox.addEventListener(
+     'change',
+     this.handleOptionChange.bind(this)
+   );
+   if (this.optionCheckbox.checked) {
+     this.tableNode.classList.add('show-unsorted-icon');
+   }
+ }
+}
+
+setColumnHeaderSort(columnIndex) {
+ if (typeof columnIndex === 'string') {
+   columnIndex = parseInt(columnIndex);
+ }
+
+ for (var i = 0; i < this.columnHeaders.length; i++) {
+   var ch = this.columnHeaders[i];
+   var buttonNode = ch.querySelector('button');
+   if (i === columnIndex) {
+     var value = ch.getAttribute('aria-sort');
+     if (value === 'descending') {
+       ch.setAttribute('aria-sort', 'ascending');
+       this.sortColumn(
+         columnIndex,
+         'ascending',
+         ch.classList.contains('num')
+       );
+     } else {
+       ch.setAttribute('aria-sort', 'descending');
+       this.sortColumn(
+         columnIndex,
+         'descending',
+         ch.classList.contains('num')
+       );
+     }
+   } else {
+     if (ch.hasAttribute('aria-sort') && buttonNode) {
+       ch.removeAttribute('aria-sort');
+     }
+   }
+ }
+}
+
+sortColumn(columnIndex, sortValue, isNumber) {
+ function compareValues(a, b) {
+   if (sortValue === 'ascending') {
+     if (a.value === b.value) {
+       return 0;
+     } else {
+       if (isNumber) {
+         return a.value - b.value;
+       } else {
+         return a.value < b.value ? -1 : 1;
+       }
+     }
+   } else {
+     if (a.value === b.value) {
+       return 0;
+     } else {
+       if (isNumber) {
+         return b.value - a.value;
+       } else {
+         return a.value > b.value ? -1 : 1;
+       }
+     }
+   }
+ }
+
+ if (typeof isNumber !== 'boolean') {
+   isNumber = false;
+ }
+
+ var tbodyNode = this.tableNode.querySelector('tbody');
+ var rowNodes = [];
+ var dataCells = [];
+
+ var rowNode = tbodyNode.firstElementChild;
+
+ var index = 0;
+ while (rowNode) {
+   rowNodes.push(rowNode);
+   var rowCells = rowNode.querySelectorAll('th, td');
+   var dataCell = rowCells[columnIndex];
+
+   var data = {};
+   data.index = index;
+   data.value = dataCell.textContent.toLowerCase().trim();
+   if (isNumber) {
+     data.value = parseFloat(data.value);
+   }
+   dataCells.push(data);
+   rowNode = rowNode.nextElementSibling;
+   index += 1;
+ }
+
+ dataCells.sort(compareValues);
+
+ // remove rows
+ while (tbodyNode.firstChild) {
+   tbodyNode.removeChild(tbodyNode.lastChild);
+ }
+
+ // add sorted rows
+ for (var i = 0; i < dataCells.length; i += 1) {
+   tbodyNode.appendChild(rowNodes[dataCells[i].index]);
+ }
+}
+
+/* EVENT HANDLERS */
+
+handleClick(event) {
+ var tgt = event.currentTarget;
+ this.setColumnHeaderSort(tgt.getAttribute('data-column-index'));
+}
+
+handleOptionChange(event) {
+ var tgt = event.currentTarget;
+
+ if (tgt.checked) {
+   this.tableNode.classList.add('show-unsorted-icon');
+ } else {
+   this.tableNode.classList.remove('show-unsorted-icon');
+ }
+}
+}
+
+// Initialize sortable table buttons
+window.addEventListener('load', function () {
+var sortableTables = document.querySelectorAll('table.sortable');
+for (var i = 0; i < sortableTables.length; i++) {
+ new SortableTable(sortableTables[i]);
+}
+});
+
+  
+ </script>
+
+<script>
+var xValues = {{date_label|safe}};
+var x1Values = {{monthly_date_label|safe}};
+
+new Chart("myChart", {
+    type: "line",
+    data: {
+      labels: xValues,
+      datasets: [{ 
+        label: 'Bor',
+        data: {{wp_label|safe}},
+        borderColor: "green",
+        fill: false
+      }, { 
+        label: 'Sababli',
+        data: {{wc_label|safe}},
+        borderColor: "orange",
+        fill: false
+      }, { 
+        label: "Yo'q",
+        data: {{wa_label|safe}},
+        borderColor: "red",
+        fill: false
+      }]
+    },
+    options: {
+      legend: {display: false}
+    }
+  });
+
+
+  function timeFrame(period){
+      console.log(period.value);
+      if (period.value == 'month') {
+        new Chart("myChart", {
+        type: "line",
+        data: {
+          labels: x1Values,
+          datasets: [{ 
+            label: "Bor",
+            data: {{mp_label|safe}},
+            borderColor: "green",
+            fill: false
+          }, { 
+            label: "Sababli",
+            data: {{mc_label|safe}},
+            borderColor: "orange",
+            fill: false
+          }, { 
+            label: "Yo'q",
+            data: {{ma_label|safe}},
+            borderColor: "red",
+            fill: false
+          }]
+        },
+        options: {
+          legend: {display: false}
+        }
+      });
+      }
+      if (period.value == 'week') {
+        new Chart("myChart", {
+        type: "line",
+        data: {
+          labels: xValues,
+          datasets: [{ 
+            data: {{wp_label|safe}},
+            borderColor: "green",
+            fill: false
+          }, { 
+            data: {{wc_label|safe}},
+            borderColor: "orange",
+            fill: false
+          }, { 
+            data: {{wa_label|safe}},
+            borderColor: "red",
+            fill: false
+          }]
+        },
+        options: {
+          legend: {display: false}
+        }
+      });
+      }
+
+      myChart.update();
+    }
+
+</script>
+
+
+
+
+{% endblock %}

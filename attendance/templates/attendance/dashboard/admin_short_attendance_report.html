@@ -1,0 +1,109 @@
+{% extends 'attendance/dashboard/base_admin.html' %}
+{% block title %}Attendance Report{% endblock %}
+
+{% block content %}
+{% load filters %}
+    <style>
+        h1, h2, h4{
+            text-align: center;
+        }
+        .btn {
+            cursor: pointer;
+        }
+        .col-sm {
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid lightgrey;
+        }
+        .hide{
+            display: none;
+        }
+        .select {
+            background-color: lightgrey;
+        }
+        th, td, .container{
+            text-align: center;
+        } 
+        .card-header {
+            text-align: center;
+        }
+                
+    </style>
+    <div class="container">
+        
+        <h1 class="mt-4 mb-4">Tumandangi Barcha Maktablar Davomati Haqida Hisobot</h1><br>
+
+        <div id="accordion">
+          <div class="card">
+            <div class="card-header" id="headingOne">
+              <h5 class="mb-0">
+                <a data-toggle="collapse" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne" >
+                    Umumiy Hisobot
+                </a>
+              </h5>
+            </div>
+
+            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne" data-parent="#accordion">
+                <div class="card-body">
+                  <br>
+                    <div id="report-1">
+                        <h2>Umumiy Hisobot</h2>
+                        <h4>{{ date }}</h4>
+                        <br>       
+                        <table class="table table-bordered table-hover">
+                            <tr>
+                                <th></th>
+                                <th>Maktabda Bor</th>
+                                <th>Sababsiz Yo'q</th>
+                                <th>Sababli Yo'q</th>
+                                <th>Umumiy</th>
+                            </tr>
+                            <tr>
+                                <td><strong>Yigitlar</strong></td>
+                                <td>{{ p_boys|length }}</td>
+                                <td>{{ a_boys|length }}</td>
+                                <td>{{ c_boys|length }}</td>
+                                <td id='sum_boys'></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Qizlar</strong></td>
+                                <td>{{ p_girls|length }}</td>
+                                <td>{{ a_girls|length }}</td>
+                                <td>{{ c_girls|length }}</td>
+                                <td id='sum_girls'></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Umumiy</strong></td>
+                                <td id='sum_present'></td>
+                                <td id='sum_absent'></td>
+                                <td id='sum_cause'></td>
+                                <td id='total'></td>
+                            </tr>
+                    </table>    
+                    
+                    </div>
+                </div>
+              </div>
+            </div>
+     
+          </div>
+  
+  
+         </div>
+  
+      <script>
+          // Overview Report
+          var sum_boys = {{ p_boys|length }} + {{ a_boys|length }} + {{ c_boys|length }};
+          var sum_girls = {{ p_girls|length }} + {{ a_girls|length }} + {{ c_girls|length }};
+          var sum_present = {{ p_boys|length }} + {{ p_girls|length }};
+          var sum_absent = {{ a_boys|length }} + {{ a_girls|length }};
+          var sum_cause = {{ c_boys|length }} + {{ c_girls|length }};
+          document.querySelector('#sum_boys').innerHTML += sum_boys;
+          document.querySelector('#sum_girls').innerHTML += sum_girls;
+          document.querySelector('#sum_present').innerHTML += sum_present;
+          document.querySelector('#sum_absent').innerHTML += sum_absent;
+          document.querySelector('#sum_cause').innerHTML += sum_cause;
+          document.querySelector('#total').innerHTML += sum_present + sum_absent + sum_cause;
+  
+      </script>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'attendance/dashboard/base_admin.html' %}
+{% block title %}Welcome {{ school.principal_name }}{% endblock %}
+{% load static %}
+{% block content %}
+<div class="content-wrapper">
+    <div class="row">
+{{teachers.first_name}} </br>
+{{teachers.last_name}}</br>
+{{teachers.middle_name}} </br>
+{{teachers.user_status}} </br>
+{{teachers.work_place}} </br>
+{{teachers.phone}} 
+
+    </div>
+</div>
+{% endblock %}

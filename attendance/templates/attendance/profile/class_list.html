@@ -1,0 +1,76 @@
+{% extends 'attendance/profile/base_user.html' %}
+{% load static %}
+{% block content %}
+    <div class="content-wrapper">
+      <div class="row">
+      <div class="col-lg-12 grid-margin stretch-card">
+          <div class="card">
+            <div class="card-body">
+              <h2 class="card-title" align="center">Maktabdagi sinflar ro'yxati</h2>
+              <div class="table-responsive">
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Sinf nomi</th>
+                      <th>O'quvchilar soni</th>             
+                      <th>Sinf haqida</th>
+                      <th>Davomat Olish</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for class in school_class %}                  
+                    <tr>
+                      <td>{{forloop.counter}}</td>
+                      <td>{{class.class_type}}</td>
+                      <td> {{class.class_student.count}} ta</td>
+                      <td>
+                        <button type="button" class="btn btn-info btn-rounded" data-bs-toggle="modal" data-bs-target="#exampleModal{{forloop.counter}}">Batafsil</button>                        
+                        <div class="modal fade" id="exampleModal{{forloop.counter}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                          <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h3 class="modal-title" id="exampleModalLabel">{{class}} o'quvchilar ro'yxati</h3>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body">
+                                <div class="table-responsive">
+                                  <table class="table table-bordered">
+                                    <thead>
+                                      <tr>                                 
+                                        <th>O'quvchi FISH</th>                           
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {% for student in students.all %}
+                                      {% if student.student_class == class %}
+                                      <tr>                                       
+                                        <td><a href="#">{{student.student_name}}</a></td>   
+                                      </tr>
+                                      {%endif %}
+                                      {% endfor %}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Qaytish</button>                                
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                       <a class="btn btn-info btn-rounded" href="{% url 'attendance:attendance_form1' pk=teacher.pk slug=class.slug %}">Davomat</a>
+                      </td>
+                    </tr>
+                    {%endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+{% endblock %}

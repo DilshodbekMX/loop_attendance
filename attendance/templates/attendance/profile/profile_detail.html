@@ -1,0 +1,27 @@
+{% extends 'attendance/profile/base_user.html' %}
+{% block title %}Welcome {{ school.principal_name }}{% endblock %}
+{% load static %}
+{% block content %}
+<div class="content-wrapper">
+    <div class="row">
+        
+
+
+                    <div class="col-12 grid-margin">
+                <h2 class="mb-4" style="position: center;" align="center"> {{teacher.first_name}} {{teacher.last_name}}<br> Haqida Ma'lumot</h2>
+                <div class="card">
+                <div class="card-body">
+
+                    <form class="form-sample" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <h4 class="mt-4" >{{teacher.last_name}} {{teacher.first_name}} {{teacher.middle_name}}  {{teacher.work_place}}da {{teacher.user_status}} lavozimida ishlaydi.</h4>
+                        <h4>Telefon raqami: {{teacher.phone}}</h4>
+                        <a href="{% url 'attendance:user_profile_update' pk=teacher.id %}" class="btn btn-primary">Shaxsiy Ma'lumotarni tahrirlash</a> 
+                    </form>
+                </div>
+                </div>
+            </div>
+
+    </div>
+</div>
+{% endblock %}

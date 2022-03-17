@@ -1,0 +1,52 @@
+{% extends 'attendance/dashboard/base_admin.html' %}
+{% load static %}
+
+
+{% block content %}
+
+    <div class="content-wrapper">
+
+      <div class="row">
+
+
+        <div class="col-lg-12 grid-margin stretch-card">
+          <div class="card">
+            <div class="card-body">
+              <h2 class="card-title" align="center">Maktablar ro'yxati</h2>
+
+              <div class="table-responsive">
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Maktab nomi</th>
+                      <th>O'quvchilar soni</th>
+                      <th>Haftalik<br>Davomati (%)</th>
+                      <th>Bugungi<br>Davomat Statusi (%)</th>
+                      <th>Maktab Davomati</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for s_name, s_a_student, s_t_p, s_t_pp, s_a_s in school_list %}
+                    <tr>
+                      <td>{{forloop.counter}}</td>
+                      <td>{{s_name}}</td>
+                      <td>{{s_a_student}} </td>
+                      <td>{{s_t_pp}} %</td>
+                      <td>{{s_a_s}} %</td>
+                      <td><a href="{% url 'attendance:admin_attendance_report' pk=s_name.pk %}">Batafsil</a></td>
+                    </tr>
+                    {%endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+   
+      </div>
+    </div>
+    
+
+
+{% endblock %}

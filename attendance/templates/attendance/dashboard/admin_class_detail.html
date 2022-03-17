@@ -1,0 +1,182 @@
+{% extends 'attendance/dashboard/base_admin.html' %}
+{% block title %}Welcome {{ school.principal_name }}{% endblock %}
+{% load static %}
+{% block content %}
+<script
+  src="https://code.jquery.com/jquery-3.6.0.js"
+  integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk="
+  crossorigin="anonymous"></script>
+<div class="content-wrapper">
+    <div class="row">
+        <div align="center">
+          <h2 class="mb-4" style="position: center;"> {{school_class.class_type}}</h2>
+        <h4>Jami o'quvchilar soni: {{school_class.class_student.count}} ta</h4>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+             
+              <li class="breadcrumb-item"><a href="{% url 'attendance:admin_school_detail' pk=schools.pk %}">{{school_class.class_school}}</a></li>
+              <li class="breadcrumb-item active" aria-current="page"> {{school_class.class_type}}</li>
+            </ol>
+          </nav>
+        </div>
+        <div class="col-lg-12 grid-margin stretch-card">
+            <div class="card">
+              <div class="card-body">         
+                    <h3 class="" align="center">Sinf o'quvchilar ro'yxati</h3> 
+                <div class="table-responsive">
+                  <table class="table table-bordered">
+                    <thead>
+                      <tr align="center" valign="top">
+                        <th>#</th>
+                  
+                        <th><h5>O'quvchi <br>FISH</h5></th>
+                        <th><h5>Umumiy davomati (%)</h5></th>
+
+                        <th><h5>O'quvchi haqida </h5></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    {%for student, percent in about_student %}                 
+                      <tr class="student_row">
+                        <td>{{forloop.counter}}</td>
+                        <td>{{student.student_name}}</td>
+                        <td >{{percent}} %</td>
+                        <td>
+                          <div class="btn-group" role="group" aria-label="Basic example">
+                            <a href="{% url 'attendance:admin_student_detail' pk=schools.pk class_slug=school_class.slug student_slug=student.slug  %}" type="button" class="btn btn-outline-info btn-fw">Batafsil Ma'lumot</a>
+                          </div>
+
+           
+                        </td>
+                      </tr>
+                      {%endfor %}
+                    </tbody>     
+                  </table>
+                </div>
+                <div class="btn-group" role="group" aria-label="Basic example">
+                    <!-- Student create button start-->
+                    <button type="button" class="btn btn-outline-success btn-fw mt-4" data-bs-toggle="modal" data-bs-target="#exampleModal1{{forloop.counter}}"><i class="mdi mdi-account-plus btn-icon-prepend"> </i>Yangi o'quvchi qo'shish</button>
+                    <div class="modal fade" id="exampleModal1{{forloop.counter}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-md modal-dialog-centered">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h3 class="modal-title" id="exampleModalLabel" align="center">O'quvchi ma'lumotlarini kiriting</h3>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="card">
+                                    <div class="card-body">
+                                      <h4 class="card-title">Horizontal Form</h4>
+                                      <p class="card-description">Horizontal form layout</p>
+                                      <form class="forms-sample" method="post" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        {{ sc_form }}
+                                        <br>
+                                        <button type="submit" name="student_create_btn" class="btn btn-primary mr-2"> Submit </button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Qaytish</button>
+                                      </form>
+                                    </div>
+                                  </div>
+                            </div>
+                 
+                          </div>
+                        </div>
+                    </div>    
+                    <!-- Student create button end -->
+
+                    <!-- Student create with file button start-->
+                    <button type="button" class="btn btn-outline-info btn-fw mt-4" data-bs-toggle="modal" data-bs-target="#exampleModal4{{forloop.counter}}"><i class="mdi mdi-file-excel"> </i>Yangi o'quvchi qo'shish (fayl bilan)</button>
+                    <div class="modal fade" id="exampleModal4{{forloop.counter}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-md modal-dialog-centered">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h3 class="modal-title" id="exampleModalLabel" align="center">Yangi o'quvchilar qo'shish</h3>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="card">
+                                    <div class="card-body">
+                                      
+                                      <form class="form-control " method="post" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        {{ scf_form.as_p }}
+                                        <button type="submit"  name="student_create_file_btn" class="btn btn-success mr-2"> Saqlash </button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Qaytish</button>
+                                      </form>
+                                    </div>
+                                  </div>
+                            </div>
+                 
+                          </div>
+                        </div>
+                    </div>
+                    <!-- Student create with file  button end -->
+
+                    <!-- Class Detail Editing start-->
+                    <button type="button" class="btn btn-outline-warning btn-fw mt-4" data-bs-toggle="modal" data-bs-target="#exampleModal2{{forloop.counter}}"><i class="mdi mdi-pen"> </i>Sinf ma'lumotini o'zgartirish</button>
+                    <div class="modal fade" id="exampleModal2{{forloop.counter}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-md modal-dialog-centered">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h3 class="modal-title" id="exampleModalLabel" align="center">Sinf nomini o'zgartirish</h3>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="card">
+                                    <div class="card-body">
+                                      
+                                      <form class="forms-sample" method="post" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        {{ cc_form }}
+                                        <br>
+                                        <button type="submit" name="class_edit_btn" class="btn btn-success mr-2"> Tasdiqlash </button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Qaytish</button>
+                                      </form>
+                                    </div>
+                                  </div>
+                            </div>
+                 
+                          </div>
+                        </div>
+                    </div>
+                    <!-- Class Detail Editing end-->
+
+                    <!-- Class delete Editing start-->
+                    <button type="button" class="btn btn-outline-danger btn-fw mt-4" data-bs-toggle="modal" data-bs-target="#exampleModal3{{forloop.counter}}"><i class="mdi mdi-pen"> </i>O'chirib tashlash</button>
+                    <div class="modal fade" id="exampleModal3{{forloop.counter}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-md modal-dialog-centered">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h3 class="modal-title" id="exampleModalLabel" align="center">Haqiqatan ham {{schools}}ni {{school_class.class_type}}ini o'chirib yubormoqchimisiz?</h3>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="card">
+                                    <div class="card-body">
+                                      
+                                      <form class="forms-sample" method="post" enctype="multipart/form-data">
+                                        <h5>Agar siz ushbu sinfni o'chirib yuborsangiz, bu sinf haqidagi barcha ma'lumotlar, va {{school_class.class_student.count}} 
+                                          o'quvchilarni barchasi avtomatik tarzda o'chirib tashlanadi</h5>
+                                        <h5>SIZ BUNGA ROZIMISIZ?</h5>
+                                        {% csrf_token %}
+                                       
+                                        <br>
+                                        <button type="submit" name="school_delete_btn" class="btn btn-danger mr-2"> Tasdiqlash </button>
+                                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Qaytish</button>
+                                      </form>
+                                    </div>
+                                  </div>
+                            </div>
+                 
+                          </div>
+                        </div>
+                    </div> <!-- Class Delete end-->
+                
+                </div>
+              </div>
+            </div>
+          </div>
+    </div>
+</div>
+
+{% endblock %}
