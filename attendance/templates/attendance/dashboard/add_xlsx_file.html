@@ -1,0 +1,104 @@
+{% extends 'attendance/dashboard/base_admin.html' %}
+{% load static %}
+
+
+{% block content %}
+
+    <div class="content-wrapper">
+
+      <div class="row">
+        <div class="row">
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'attendance:dashboard'%}">Bosh sahifa</a></li>
+                <li class="breadcrumb-item active">Ma'lumot kiritish</li>
+              </ol>
+            </nav>
+
+        <div class="col-lg-12 grid-margin stretch-card">
+          <div class="card">
+            <div class="card-body text-center"> 
+              <h2 class="card-title" >Ma'lumot kiritish</h2>
+              <form action="{% url "attendance:add_xlsx_file" %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                       <div class="input-group">
+                        <input type="file" class="form-control" title="Upload excel file" name="excel_file" id="inputGroupFile04"  aria-describedby="inputGroupFileAddon04" aria-label="Upload" required="required">
+                        <input class="btn btn-secondary" type="submit" id="inputGroupFileAddon04" value="Yuklash"/>
+
+                      </div>
+                    </form>
+              <div class="table-responsive">
+                  {% if is_bad_zip %}
+                  <br>
+                  <br>
+                  <h3>Fayl Excelning<mark class="text-danger">.xlsx</mark> tipida bo'lishi kerak</h3>
+                  
+                  {% else %}
+                <table class="table table-bordered">
+                    
+                    <tbody>
+                        {% for row in excel_data %}
+                      <tr>
+                        {% for cell in row %}
+                        <td> {{ cell }}</td>
+                        {% endfor %}
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                  {%endif%}
+              </div>
+              <br>
+                  <br>
+                  <br>
+              <h5>Faqat <mark>.xlsx</mark> fayl bilan bexato qo'shishingiz mumkin</h5>
+              <p>Misol uchun: <em><strong>o'quvchilar ro'yxati.xlsx</strong></em></p>
+              <h2 class="card-title" >Jadvalning na'munaviy ko'rinish</h2>
+              <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th scope="col">A</th>
+                        <th scope="col">B</th>
+                        <th scope="col">C</th>
+                        <th scope="col">D</th>
+                      </tr>
+                  <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">O'quvchi Fish</th>
+                    <th scope="col">Sinfi</th>
+                    <th scope="col">Maktabi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">1</th>
+                    <td>Abdubannonova Maftunaxon Mamurjon </td>
+                    <td>11-D sinf</td>
+                    <td>33-maktab</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">2</th>
+                    <td>Abdulxayev Solixiddin Mo'ydinjon o`g`li</td>
+                    <td>11-D sinf</td>
+                    <td>33-maktab</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">3</th>
+                    <td>Abduraximov Abduqaxxor Erkinjon o`g`li</td>
+                    <td>11-D sinf</td>
+                    <td>33-maktab</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="mt-3">*** Bu yerda <strong>A, B, C, D</strong> Excel dagi ustunlar nomi</p>
+              
+            </div>
+          </div>
+        </div>
+   
+      </div>
+    </div>
+    
+
+
+{% endblock %}

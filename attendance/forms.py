@@ -5,12 +5,18 @@ from .models import Csv, School, SchoolClass, Teacher, Student, Attendance
 from loop_attendance import settings
 
 schools_choice = [
-    ('1-maktab','1-maktab'), ('2-maktab','2-maktab'), ('3-maktab','3-maktab'),('4-maktab','4-maktab'),('5-maktab','5-maktab'),('6-maktab','6-maktab'),
+    ('1-maktab','1-maktab'), ('2-IDUM', '2-IDUM'),('2-maktab','2-maktab'), ('3-maktab','3-maktab'),('4-maktab','4-maktab'),('4-IDUM', '4-IDUM'),('5-maktab','5-maktab'),('6-maktab','6-maktab'),
     ('7-maktab','7-maktab'), ('8-maktab','8-maktab'), ('9-maktab','9-maktab'), ('10-maktab','10-maktab'), ('11-maktab','11-maktab'),('12-maktab','12-maktab'),
     ('13-maktab','13-maktab'), ('14-maktab','14-maktab'),('15-maktab','15-maktab'), ('16-maktab','16-maktab'), ('17-maktab','17-maktab'),('18-maktab','18-maktab'),
     ('19-maktab','19-maktab'), ('20-maktab','22-maktab'),('23-maktab','23-maktab'),('24-maktab','24-maktab'), ('25-maktab','25-maktab'),('26-maktab','26-maktab'),
-    ('33-maktab','33-maktab'),
-]
+    ('27-maktab','27-maktab'),('28-maktab','28-maktab'), ('29-maktab','29-maktab'), ('30-maktab','30-maktab'), ('31-maktab','31-maktab'),('32-maktab','32-maktab'),
+    ('33-maktab','33-maktab'), ('34-maktab','34-maktab'),('35-maktab','35-maktab'), ('36-maktab','36-maktab'), ('37-maktab','37-maktab'),('38-maktab','38-maktab'),
+    ('39-maktab','39-maktab'), ('40-maktab','40-maktab'), ('41-maktab','41-maktab'), ('42-maktab','42-maktab'), ('43-maktab','43-maktab'), 
+    ('44-maktab','44-maktab'),('45-maktab','45-maktab'), ('46-maktab','46-maktab'), ('47-maktab','47-maktab'),('48-maktab','48-maktab'),
+    ('49-maktab','49-maktab'), ('50-maktab','50-maktab'), ('51-maktab','51-maktab'), ('52-maktab','52-maktab'), ('53-maktab','53-maktab'),
+    ('54-maktab','54-maktab'),('55-maktab','55-maktab'), ('56-maktab','56-maktab'), ('57-maktab','57-maktab'),('58-maktab','58-maktab'),
+    ('59-maktab','59-maktab'), ('60-maktab','60-maktab'), ('61-maktab','61-maktab'), ('62-maktab','62-maktab'),('63-maktab','63-maktab'),
+    ('64-maktab','64-maktab'),('65-maktab','65-maktab'), ('66-maktab','66-maktab'), ('67-maktab','67-maktab'),]
 class_attendance = (
     ('Bor','Bor'),
     ("Yo'q","Yo'q"),
@@ -18,17 +24,17 @@ class_attendance = (
 
 )
 class_list = [
-    ('1-A sinf', '1-A sinf'), ('1-B sinf', '1-B sinf'), ('1-C sinf', '1-C sinf'), ('1-D sinf', '1-D sinf'), ('1-E sinf', '1-E sinf'),
-    ('2-A sinf', '2-A sinf'), ('2-B sinf', '2-B sinf'), ('2-C sinf', '2-C sinf'), ('2-D sinf', '2-D sinf'), ('2-E sinf', '2-E sinf'),
-    ('3-A sinf', '3-A sinf'), ('3-B sinf', '3-B sinf'), ('3-C sinf', '3-C sinf'), ('3-D sinf', '3-D sinf'), ('3-E sinf', '3-E sinf'),
-    ('4-A sinf', '4-A sinf'), ('4-B sinf', '4-B sinf'), ('4-C sinf', '4-C sinf'), ('4-D sinf', '4-D sinf'), ('4-E sinf', '4-E sinf'),
-    ('5-A sinf', '5-A sinf'), ('5-B sinf', '5-B sinf'), ('5-C sinf', '5-C sinf'), ('5-D sinf', '5-D sinf'), ('5-E sinf', '5-E sinf'),
-    ('6-A sinf', '6-A sinf'), ('6-B sinf', '6-B sinf'), ('6-C sinf', '6-C sinf'), ('6-D sinf', '6-D sinf'), ('6-E sinf', '6-E sinf'),
-    ('7-A sinf', '7-A sinf'), ('7-B sinf', '7-B sinf'), ('7-C sinf', '7-C sinf'), ('7-D sinf', '7-D sinf'), ('7-E sinf', '7-E sinf'),
-    ('8-A sinf', '8-A sinf'), ('8-B sinf', '8-B sinf'), ('8-C sinf', '8-C sinf'), ('8-D sinf', '8-D sinf'), ('8-E sinf', '8-E sinf'),
-    ('9-A sinf', '9-A sinf'), ('9-B sinf', '9-B sinf'), ('9-C sinf', '9-C sinf'), ('9-D sinf', '9-D sinf'), ('9-E sinf', '9-E sinf'),
-    ('10-A sinf', '10-A sinf'), ('10-B sinf', '10-B sinf'), ('10-C sinf', '10-C sinf'), ('10-D sinf', '10-D sinf'), ('10-E sinf', '10-E sinf'),
-    ('11-A sinf', '11-A sinf'), ('11-B sinf', '11-B sinf'), ('11-C sinf', '11-C sinf'), ('11-D sinf', '11-D sinf'), ('11-E sinf', '11-E sinf'),
+    ('1-A sinf', '1-A sinf'), ('1-B sinf', '1-B sinf'),  ('1-D sinf', '1-D sinf'), ('1-E sinf', '1-E sinf'),('1-F sinf', '1-F sinf'),
+    ('2-A sinf', '2-A sinf'), ('2-B sinf', '2-B sinf'),  ('2-D sinf', '2-D sinf'), ('2-E sinf', '2-E sinf'),('2-F sinf', '2-F sinf'),
+    ('3-A sinf', '3-A sinf'), ('3-B sinf', '3-B sinf'), ('3-D sinf', '3-D sinf'), ('3-E sinf', '3-E sinf'),('3-F sinf', '3-F sinf'),
+    ('4-A sinf', '4-A sinf'), ('4-B sinf', '4-B sinf'),  ('4-D sinf', '4-D sinf'), ('4-E sinf', '4-E sinf'),('4-F sinf', '4-F sinf'),
+    ('5-A sinf', '5-A sinf'), ('5-B sinf', '5-B sinf'), ('5-D sinf', '5-D sinf'), ('5-E sinf', '5-E sinf'),('5-F sinf', '5-F sinf'),
+    ('6-A sinf', '6-A sinf'), ('6-B sinf', '6-B sinf'), ('6-D sinf', '6-D sinf'), ('6-E sinf', '6-E sinf'),('6-F sinf', '6-F sinf'),
+    ('7-A sinf', '7-A sinf'), ('7-B sinf', '7-B sinf'),  ('7-D sinf', '7-D sinf'), ('7-E sinf', '7-E sinf'),('7-F sinf', '7-F sinf'),
+    ('8-A sinf', '8-A sinf'), ('8-B sinf', '8-B sinf'),  ('8-D sinf', '8-D sinf'), ('8-E sinf', '8-E sinf'),('8-F sinf', '8-F sinf'),
+    ('9-A sinf', '9-A sinf'), ('9-B sinf', '9-B sinf'), ('9-D sinf', '9-D sinf'), ('9-E sinf', '9-E sinf'),('9-F sinf', '9-F sinf'),
+    ('10-A sinf', '10-A sinf'), ('10-B sinf', '10-B sinf'), ('10-D sinf', '10-D sinf'), ('10-E sinf', '10-E sinf'),('10-F sinf', '10-F sinf'),
+    ('11-A sinf', '11-A sinf'), ('11-B sinf', '11-B sinf'), ('11-D sinf', '11-D sinf'), ('11-E sinf', '11-E sinf'),('11-F sinf', '11-F sinf'),
 ]
 
 
@@ -112,6 +118,7 @@ class TeacherUpdateForm(forms.ModelForm):
             field.widget.attrs['class'] = 'form-control'
 
 class ClassForm(forms.ModelForm):
+
 
     class Meta:
         model = SchoolClass

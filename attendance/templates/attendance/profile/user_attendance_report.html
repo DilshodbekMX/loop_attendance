@@ -31,8 +31,14 @@
     </style>
     <div class="container">
         
-        <h1 class="mt-4 mb-4">{{ schools}} davomati haqida hisobot</h1><br>
-
+        <h2 class="mt-4 mb-4">{{ teacher.work_place}} kunlik davomat hisoboti</h2><br>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+             
+              <li class="breadcrumb-item"><a href="{% url 'attendance:profile' teacher.pk %}">Bosh Sahifa</a></li>
+              <li class="breadcrumb-item active" aria-current="page"> Kunlik Hisobot</li>
+            </ol>
+          </nav>
         <div id="accordion">
           <div class="card">
             <div class="card-header" id="headingOne">

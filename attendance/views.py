@@ -1,4 +1,6 @@
 import csv
+from zipfile import BadZipfile
+import openpyxl
 from django.shortcuts import render, get_object_or_404, HttpResponse, redirect
 from django.contrib.auth import authenticate, login, logout
 from .models import Csv, Teacher, School, Student, Attendance, SchoolClass
@@ -11,7 +13,7 @@ from django.utils.timezone import datetime
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.models import User
-from datetime import timedelta, date
+from datetime import timedelta, date, time
 from django.utils import timezone
 
 
@@ -32,6 +34,14 @@ class AdminDashboardView(LoginRequiredMixin, ListView):
         context['students'] = Student.objects.all()
         context['attendance'] = Attendance.objects.all()
         context['date'] = datetime.today().date()
+        special_date = datetime.today().date()
+
+        if Attendance.objects.filter(date=datetime.today().date()).count() == 0  and timezone.now().date().weekday()==0:
+            context['date'] = datetime.today().date() - timedelta(days=2)
+
+        elif Attendance.objects.filter(date=datetime.today().date()).count() == 0  and timezone.now().date().weekday() > 0:
+            context['date'] = datetime.today().date() - timedelta(days=1)
+        # Total daily report
         context['total_present'] = Attendance.objects.filter(date=context['date'], mark_attendance='Bor' ).count()
         context['p_percent'] = round(((context['total_present'] * 100) / Student.objects.all().count()), 2)
         context['total_cause'] = Attendance.objects.filter(date=context['date'], mark_attendance='Sababli' ).count()
@@ -40,6 +50,8 @@ class AdminDashboardView(LoginRequiredMixin, ListView):
         context['a_percent'] = round(((context['total_absent'] * 100) / Student.objects.all().count()), 2)
         context['wp_label'], context['wa_label'], context['wc_label'], context['date_label'] = [], [], [], []
         context['mp_label'], context['ma_label'], context['mc_label'], context['monthly_date_label'] = [], [], [], []
+        context['is_sunday'] = False
+        # Total weekly report
         for i in range(6,-1,-1):
             some_day_last_week = timezone.now().date() - timedelta(days=i)
             if some_day_last_week.weekday()!=6:
@@ -50,6 +62,9 @@ class AdminDashboardView(LoginRequiredMixin, ListView):
                 context['wc_label'].append(round(((cause * 100) / Student.objects.all().count()), 2))
                 absent = Attendance.objects.filter(date=some_day_last_week, mark_attendance="Yo'q" ).count()
                 context['wa_label'].append(round(((absent * 100) / Student.objects.all().count()), 2))
+            elif timezone.now().date().weekday()==6:
+                    context['is_sunday'] = True
+        # Total monthly report
         for i in range(31,-1,-1):
             some_day_last_week = timezone.now().date() - timedelta(days=i)
             if some_day_last_week.weekday()!=6:
@@ -60,6 +75,9 @@ class AdminDashboardView(LoginRequiredMixin, ListView):
                 context['mc_label'].append(round(((cause * 100) / Student.objects.all().count()), 2))
                 absent = Attendance.objects.filter(date=some_day_last_week, mark_attendance="Yo'q" ).count()
                 context['ma_label'].append(round(((absent * 100) / Student.objects.all().count()), 2))     
+            elif timezone.now().date().weekday() ==6:
+                    context['is_sunday'] = True
+                    
         context['wp_percent'] = round(sum(context['wp_label'])/len(context['wp_label']),2)
         context['mp_percent'] = round(sum(context['mp_label'])/len(context['mp_label']),2)
         context['wc_percent'] = round(sum(context['wc_label'])/len(context['wc_label']),2)
@@ -85,11 +103,11 @@ class AdminDashboardView(LoginRequiredMixin, ListView):
                 school_context['school_all_students'] = (Student.objects.filter(student_school__in=school).count())
                 s_a_student.append(school_context['school_all_students'])
                 school_all_students= (Student.objects.filter(student_school__in=school).count()) * (timezone.now().date().weekday() + 1)
-                school_context['school_total_present'] = Attendance.objects.filter(date__week=context['date'].isocalendar()[1], mark_attendance='Bor',teacher__in=teacher).exclude(date__week_day=1).count()
+                school_context['school_total_present'] = Attendance.objects.filter(date__week=special_date.isocalendar()[1], mark_attendance='Bor',teacher__in=teacher).exclude(date__week_day=1).count()
                 s_t_p.append(school_context['school_total_present'])
-                school_context['school_total_cause'] = Attendance.objects.filter(date__week=context['date'].isocalendar()[1], mark_attendance='Sababli',teacher__in=teacher).exclude(date__week_day=1).count()
+                school_context['school_total_cause'] = Attendance.objects.filter(date__week=special_date.isocalendar()[1], mark_attendance='Sababli',teacher__in=teacher).exclude(date__week_day=1).count()
                 s_t_c.append(school_context['school_total_cause'])
-                school_context['school_total_absent'] = Attendance.objects.filter(date__week=context['date'].isocalendar()[1], mark_attendance="Yo'q",teacher__in=teacher).exclude(date__week_day=1).count()
+                school_context['school_total_absent'] = Attendance.objects.filter(date__week=special_date.isocalendar()[1], mark_attendance="Yo'q",teacher__in=teacher).exclude(date__week_day=1).count()
                 s_t_a.append(school_context['school_total_absent'])
                 school_context['school_total_ppercent'] = round(school_context['school_total_present'] * 100 / school_all_students, 2)
                 s_t_pp.append(school_context['school_total_ppercent'])
@@ -177,6 +195,58 @@ class AdminSchoolListView(LoginRequiredMixin, ListView):
         return context
 
 @user_passes_test(lambda u: u.is_superuser)
+def AdminXlsxFileAdd(request):
+    if "GET" == request.method:
+        return render(request, 'attendance/dashboard/add_xlsx_file.html', {})
+    else:
+        excel_file = request.FILES["excel_file"]
+        is_bad_zip = False
+        try:
+            wb = openpyxl.load_workbook(excel_file)
+            sheet_list = [sheet.title for sheet in wb]
+            for i in sheet_list:
+                try:
+                    worksheet = wb[i]
+                    excel_data = list()
+                    for row in range(1, 17):
+                        row_data = list()
+                        for cell in worksheet[row]:
+                            row_data.append(str(cell.value))
+                        excel_data.append(row_data)
+                    for row in range(2, worksheet.max_row + 1):
+                        full_name = (worksheet[f'B{row}'].value)
+                        student_school = School.objects.get(school_name=(worksheet[f'D{row}'].value))
+                        student_teacher = Teacher.objects.get(work_place=student_school)
+                        student_class, created = SchoolClass.objects.get_or_create(
+                                            class_type=(worksheet[f'C{row}'].value), 
+                                            class_school=student_school, 
+                                            class_teacher=student_teacher
+                                    )
+                        if ((full_name.split(' '))[0]).endswith("v"):
+                            student_gender = 'M'
+                        else:
+                            student_gender = 'F'
+                       
+                        student_add, created = Student.objects.get_or_create(
+                                    student_name = full_name,
+                                    student_class = student_class,
+                                    student_teacher = student_teacher,
+                                    student_school = student_school,
+                                    student_gender = student_gender,
+                                )
+                    break
+                except KeyError:
+                    excel_data = "Ma'lumot kiritishda xatolik"
+        except BadZipfile:
+            is_bad_zip = True
+            excel_data = "XLSX fayl bo'lishi kerak"
+        
+            
+        context = {"excel_data":excel_data, 'is_bad_zip':is_bad_zip}
+
+        return render(request, 'attendance/dashboard/add_xlsx_file.html', context)
+
+@user_passes_test(lambda u: u.is_superuser)
 def AdminSchoolDetailView(request, pk):
     schools = get_object_or_404(School.objects.filter(pk=pk), )
     teacher = get_object_or_404(Teacher.objects.all(), work_place=schools.school_name)
@@ -208,94 +278,11 @@ def AdminSchoolDetailView(request, pk):
             class_percent_list.append(0)
         class_list.append(classe)
     about_class = zip(class_list, class_percent_list)
-    if request.user.is_superuser:
-        scf_form = CsvModelForm(request.POST or None, request.FILES or None)
-        cc_form = SchoolForm(request.POST or None)
-        tc_form = TeacherForm(request.POST or None)
-        uc_form = UserForm(request.POST or None)
-        if request.method == 'POST':
-           
-            if 'student_create_file_btn' in request.POST:
-                if scf_form.is_valid():
-                    scf_form.save()
-                    scf_form = CsvModelForm()
-                    obj = Csv.objects.get(activated=False)
-                    with open(obj.file_name.path, 'r', encoding='utf8') as f:
-                        reader = csv.reader(f)
-                        for i, row in enumerate(reader):
-                            if i == 0:
-                                pass
-                            else:
-                                full_name = row[1]  
-                                                
-                                student_school = School.objects.get(school_name=(row[3]))
-                                student_teacher = Teacher.objects.get(work_place=student_school)
-                                student_class, created = SchoolClass.objects.get_or_create(
-                                    class_type=row[2], 
-                                    class_school=student_school, 
-                                    class_teacher=student_teacher
-                                    )
-                                if ((full_name.split(' '))[0]).endswith("v"):
-                                    student_gender = 'M'
-                                else:
-                                    student_gender = 'F'
-                                    print(student_gender)
-                                Student.objects.create(
-                                    student_name = full_name,
-                                    student_class = student_class,
-                                    student_teacher = student_teacher,
-                                    student_school = student_school,
-                                    student_gender = student_gender,
-                                )
-                        obj.activated = True
-                        obj.save()
-            
-            elif 'school_edit_btn' in request.POST:
-                if cc_form.is_valid():
-                    school_edit = cc_form.save(commit=False)
-                  
-                    S_obj = schools
-                    S_obj.principal = teacher.user
-                    S_obj.school_name = school_edit.school_name
-                    print(S_obj.principal )
-                    S_obj.save()   
-
-                    t_obj = teacher
-                    t_obj.work_place = school_edit.school_name
-                    t_obj.save()        
-
-            elif 'teacher_edit_btn' in request.POST:
-                if tc_form.is_valid() and uc_form.is_valid():
-                    user = uc_form.save(commit=False)
-                    username = uc_form.cleaned_data['username']
-                    password1 = uc_form.cleaned_data['password1']
-                    user.set_password(password1)
-                    user.save()
-                    user = authenticate(username=username, password=password1)
-                    
-                    profile = tc_form.save(commit=False)
-                    profile.user = user
-                    profile.save()
-
-                    School.objects.get_or_create(
-                        school_name = profile.work_place,
-                        principal = user,
-            )
-
-            elif 'school_delete_btn' in request.POST:
-                s_obj = schools.principal
-                s_obj.delete()
-                return  redirect('attendance:school_list')
-
-            return  redirect('attendance:admin_school_detail',pk=schools.pk)
+   
     context = {
         'schools':schools,
         'school_class':school_class,
         'students': students,
-        'scf_form':scf_form,
-        'cc_form':cc_form,
-        'uc_form':uc_form,
-        'tc_form':tc_form,
         'about_class':about_class,
     }
     return render(request,'attendance/dashboard/school_detail.html', context)
@@ -305,6 +292,7 @@ def ClassDetailView(request, pk, slug):
     schools = get_object_or_404(School.objects.all(), pk=pk)
     school_class = get_object_or_404(SchoolClass.objects.filter(slug=slug))
     classes = SchoolClass.objects.filter(slug=slug)
+    all_class = SchoolClass.objects.filter(class_school=schools)
     students = Student.objects.filter(student_class__in=classes)
     student_percent_list = []
     student_list = []
@@ -324,8 +312,6 @@ def ClassDetailView(request, pk, slug):
     
     if request.user.is_superuser:
         sc_form = StudentForm(request.POST or None)
-        cc_form = ClassForm(request.POST or None)
-        scf_form = CsvModelForm(request.POST or None, request.FILES or None)
         if request.method == 'POST':
             if 'student_create_btn' in request.POST:
                 if sc_form.is_valid():
@@ -334,61 +320,11 @@ def ClassDetailView(request, pk, slug):
                     s_create.student_teacher = schools.principal.teacheruser
                     s_create.student_school = schools
                     s_create.save()
-            
-            elif 'student_create_file_btn' in request.POST:
-            
-                    scf_form.save()
-                    scf_form = CsvModelForm()
-                    obj = Csv.objects.get(activated=False)
-                    with open(obj.file_name.path, 'r', encoding='utf8') as f:
-                        reader = csv.reader(f)
-                        for i, row in enumerate(reader):
-                            if i == 0:
-                                pass
-                            else:
-                                full_name = row[1]  
-                                                
-                                student_school = School.objects.get(school_name=(row[3]))
-                                student_teacher = Teacher.objects.get(work_place=student_school)
-                                student_class, created = SchoolClass.objects.get_or_create(
-                                    class_type=row[2], 
-                                    class_school=student_school, 
-                                    class_teacher=student_teacher
-                                    )
-                                if ((full_name.split(' '))[0]).endswith("v"):
-                                    student_gender = 'M'
-                                else:
-                                    student_gender = 'F'
-                                    print(student_gender)
-                                Student.objects.create(
-                                    student_name = full_name,
-                                    student_class = student_class,
-                                    student_teacher = student_teacher,
-                                    student_school = student_school,
-                                    student_gender = student_gender,
-                                )
-                        obj.activated = True
-                        obj.save()
-                        
-
-
-            elif 'class_edit_btn' in request.POST:
-                if cc_form.is_valid():
-                    classess = cc_form.save(commit=False)
-                    print(classess.class_type)
-                    obj = school_class
-                    obj.class_school = schools
-                    obj.class_type = classess.class_type
-                    obj.class_teacher = schools.principal.teacheruser
-                    obj.save()
-
-
 
             elif 'clas_delete_btn' in request.POST:
                 obj = school_class
                 obj.delete()
-                return  redirect('attendance:admin_school_detail',pk=schools.pk)(present + absent + cause) 
-
+                return  redirect('attendance:admin_school_detail',pk=schools.pk)
             return  redirect('attendance:admin_class_detail',pk=schools.pk, slug=school_class.slug)
 
     context = {
@@ -397,14 +333,12 @@ def ClassDetailView(request, pk, slug):
         'classes':classes,
         'students': students,
         'sc_form':sc_form,
-        'scf_form':scf_form,
-        'cc_form':cc_form,
+
         'about_student':about_student,
     }
 
     return render(request,'attendance/dashboard/admin_class_detail.html', context)
     
-
 @user_passes_test(lambda u: u.is_superuser)
 def AdminStudentDetailView(request, pk, class_slug, student_slug):
     schools = get_object_or_404(School.objects.all(), pk=pk)
@@ -415,6 +349,13 @@ def AdminStudentDetailView(request, pk, class_slug, student_slug):
         total = round((students.present*100)/(students.present+students.cause+students.absent), 2)
     else:
         total = 0
+    if request.user.is_superuser:
+        if request.method == 'POST':
+            if 'student_delete_btn' in request.POST:
+                obj = students
+                obj.delete()
+                
+            return  redirect('attendance:admin_class_detail',pk=schools.pk, slug=school_class.slug)
     context = {
         'schools':schools,
         'school_class':school_class,
@@ -458,9 +399,7 @@ def CreateUserView(request):
             )
 
             registered = True
-        
-        else:
-            print(user_form.errors, profile_form.errors)
+
         
     else:
         user_form = UserForm()
@@ -656,41 +595,58 @@ class TeacherDetailView(LoginRequiredMixin, DetailView):
         context['students'] = Student.objects.filter(student_teacher=context['teacher'])
         context['classes'] = SchoolClass.objects.filter(class_teacher=context['teacher'])
         context['date'] = datetime.today().date()
-        context['total_present'] = Attendance.objects.filter(date=context['date'], mark_attendance='Bor', teacher=context['teacher'] ).count()
-        context['p_percent'] = round(((context['total_present'] * 100) / context['students'].count()), 2)
-        context['total_cause'] = Attendance.objects.filter(date=context['date'], mark_attendance='Sababli', teacher=context['teacher'] ).count()
-        context['c_percent'] = round(((context['total_cause'] * 100) / context['students'].count()), 2)
-        context['total_absent'] = Attendance.objects.filter(date=context['date'], mark_attendance="Yo'q", teacher=context['teacher'] ).count()
-        context['a_percent'] = round(((context['total_absent'] * 100) / context['students'].count()), 2)
-        context['wp_label'], context['wa_label'], context['wc_label'], context['date_label'] = [], [], [], []
-        context['mp_label'], context['ma_label'], context['mc_label'], context['monthly_date_label'] = [], [], [], []
-
-        for i in range(6,-1,-1):
-            some_day_last_week = timezone.now().date() - timedelta(days=i)
-            if some_day_last_week.weekday()!=6:
-                context['date_label'].append(datetime.strftime(datetime.now()- timedelta(i), '%d/%m/%y'))
-                present = Attendance.objects.filter(date=some_day_last_week, mark_attendance='Bor', teacher=context['teacher'] ).count()
-                context['wp_label'].append(round(((present * 100) / context['students'].count()), 2))
-                cause = Attendance.objects.filter(date=some_day_last_week, mark_attendance='Sababli', teacher=context['teacher'] ).count()
-                context['wc_label'].append(round(((cause * 100) / context['students'].count()), 2))
-                absent = Attendance.objects.filter(date=some_day_last_week, mark_attendance="Yo'q", teacher=context['teacher'] ).count()
-                context['wa_label'].append(round(((absent * 100) / context['students'].count()), 2))
-        for i in range(31,-1,-1):
-            some_day_last_week = timezone.now().date() - timedelta(days=i)
-            if some_day_last_week.weekday()!=6:
-                context['monthly_date_label'].append(datetime.strftime(datetime.now()- timedelta(i), '%d/%m/%y'))
-                present = Attendance.objects.filter(date=some_day_last_week, mark_attendance='Bor', teacher=context['teacher'] ).count()
-                context['mp_label'].append(round(((present * 100) / context['students'].count()), 2))
-                cause = Attendance.objects.filter(date=some_day_last_week, mark_attendance='Sababli', teacher=context['teacher'] ).count()
-                context['mc_label'].append(round(((cause * 100) / context['students'].count()), 2))
-                absent = Attendance.objects.filter(date=some_day_last_week, mark_attendance="Yo'q", teacher=context['teacher'] ).count()
-                context['ma_label'].append(round(((absent * 100) / context['students'].count()), 2))  
-        context['wp_percent'] = round(sum(context['wp_label'])/len(context['wp_label']),2)
-        context['mp_percent'] = round(sum(context['mp_label'])/len(context['mp_label']),2)
-        context['wc_percent'] = round(sum(context['wc_label'])/len(context['wc_label']),2)
-        context['mc_percent'] = round(sum(context['mc_label'])/len(context['mc_label']),2)
-        context['wa_percent'] = round(sum(context['wa_label'])/len(context['wa_label']),2)
-        context['ma_percent'] = round(sum(context['ma_label'])/len(context['ma_label']),2)
+        if context['students'].count() > 0:
+            context['attendance_percent'] = round((100 * Attendance.objects.filter(teacher=context['teacher'], date=context['date'] ).count()/context['students'].count()),2)
+        context["current_time"] = datetime.strftime(datetime.now(),"%H:%M:%S") 
+        context["expired_time"] = "15:00:00"
+        if context["current_time"] >= context["expired_time"]:
+            context['is_expired'] = False
+        elif context["current_time"] < context["expired_time"]:
+            context['is_expired'] = True
+        if Attendance.objects.filter(date=datetime.today().date(), teacher=context['teacher']).count() == 0 or timezone.now().date().weekday()==6:
+            context['date'] = datetime.today().date() - timedelta(days=1)
+        if context['students'].count() > 0:
+            context['total_present'] = Attendance.objects.filter(date=context['date'], mark_attendance='Bor', teacher=context['teacher'] ).count()
+            context['p_percent'] = round(((context['total_present'] * 100) / context['students'].count()), 2)
+            context['total_cause'] = Attendance.objects.filter(date=context['date'], mark_attendance='Sababli', teacher=context['teacher'] ).count()
+            context['c_percent'] = round(((context['total_cause'] * 100) / context['students'].count()), 2)
+            context['total_absent'] = Attendance.objects.filter(date=context['date'], mark_attendance="Yo'q", teacher=context['teacher'] ).count()
+            context['a_percent'] = round(((context['total_absent'] * 100) / context['students'].count()), 2)
+            context['wp_label'], context['wa_label'], context['wc_label'], context['date_label'] = [], [], [], []
+            context['mp_label'], context['ma_label'], context['mc_label'], context['monthly_date_label'] = [], [], [], []
+            context['is_sunday'] = False
+            for i in range(6,-1,-1):
+                some_day_last_week = timezone.now().date() - timedelta(days=i)
+                
+                if some_day_last_week.weekday()!=6:
+                    context['date_label'].append(datetime.strftime(datetime.now()- timedelta(i), '%d/%m/%y'))
+                    present = Attendance.objects.filter(date=some_day_last_week, mark_attendance='Bor', teacher=context['teacher'] ).count()
+                    context['wp_label'].append(round(((present * 100) / context['students'].count()), 2))
+                    cause = Attendance.objects.filter(date=some_day_last_week, mark_attendance='Sababli', teacher=context['teacher'] ).count()
+                    context['wc_label'].append(round(((cause * 100) / context['students'].count()), 2))
+                    absent = Attendance.objects.filter(date=some_day_last_week, mark_attendance="Yo'q", teacher=context['teacher'] ).count()
+                    context['wa_label'].append(round(((absent * 100) / context['students'].count()), 2))
+                elif timezone.now().date().weekday() == 6:
+                    context['is_sunday'] = True
+                
+            for i in range(31,-1,-1):
+                some_day_last_week = timezone.now().date() - timedelta(days=i)
+                if some_day_last_week.weekday()!=6:
+                    context['monthly_date_label'].append(datetime.strftime(datetime.now()- timedelta(i), '%d/%m/%y'))
+                    present = Attendance.objects.filter(date=some_day_last_week, mark_attendance='Bor', teacher=context['teacher'] ).count()
+                    context['mp_label'].append(round(((present * 100) / context['students'].count()), 2))
+                    cause = Attendance.objects.filter(date=some_day_last_week, mark_attendance='Sababli', teacher=context['teacher'] ).count()
+                    context['mc_label'].append(round(((cause * 100) / context['students'].count()), 2))
+                    absent = Attendance.objects.filter(date=some_day_last_week, mark_attendance="Yo'q", teacher=context['teacher'] ).count()
+                    context['ma_label'].append(round(((absent * 100) / context['students'].count()), 2))  
+                elif timezone.now().date().weekday() == 6:
+                    context['is_sunday'] = True
+            context['wp_percent'] = round(sum(context['wp_label'])/len(context['wp_label']),2)
+            context['mp_percent'] = round(sum(context['mp_label'])/len(context['mp_label']),2)
+            context['wc_percent'] = round(sum(context['wc_label'])/len(context['wc_label']),2)
+            context['mc_percent'] = round(sum(context['mc_label'])/len(context['mc_label']),2)
+            context['wa_percent'] = round(sum(context['wa_label'])/len(context['wa_label']),2)
+            context['ma_percent'] = round(sum(context['ma_label'])/len(context['ma_label']),2)
 
         return context
 
@@ -711,25 +667,178 @@ def TeacherClassListView(request, pk):
     teachers = Teacher.objects.filter(pk=teacher.pk)
     students=Student.objects.filter(student_teacher__in=teachers)
     school_class = SchoolClass.objects.filter(class_teacher__in=teachers)
-    # todays_attendance = Attendance.objects.filter(date=datetime.today(),teacher__in=teachers, school_class=school_class)
-    registered = False
+    class_percent_list = []
+    class_list = []
 
-    if request.method == "POST":
-        attendance_form = AttendanceForm(data=request)
+    for classes in school_class:
+        student_percent_list = []
         
+        classe = get_object_or_404(SchoolClass.objects.filter(slug=classes.slug))
+        student_classes = SchoolClass.objects.filter(slug=classes.slug)
+        studenta = Student.objects.filter(student_class__in=student_classes)
+        for student in studenta:
+            studente = get_object_or_404(Student.objects.filter(pk=student.pk, student_class=classes))
+            present = studente.present
+            cause = studente.cause
+            absent = studente.absent
+            if (present + absent + cause) > 0:
+                student_percent = round((100 * present) / (present + absent + cause),2)
+            else:
+                student_percent = 0 
+            student_percent_list.append(student_percent)
+        if len(student_percent_list) > 0:    
+            class_percent_list.append(round((sum(student_percent_list)/len(student_percent_list)),2))
+        else: 
+            class_percent_list.append(0)
+        class_list.append(classe)
+    about_class = zip(class_list, class_percent_list)
+    context = {
+        'teacher':teacher, 
+        'school_class':school_class,
+        'students':students, 
+        'about_class':about_class}
+    return render(request,'attendance/profile/class_list.html', context)
 
-        if attendance_form.is_valid():
-            attendance = attendance_form.save(commit=False)
-            attendance.save()
+@login_required
+def TeacherAttendanceListView(request, pk):
 
-            registered = True
-        
-        else:
-            print(attendance_form.errors)
-      
+    current_time = datetime.strftime(datetime.now(),"%H:%M:%S") 
+    expired_time = "16:00:00"
+    teacher = get_object_or_404(Teacher.objects.filter(user=request.user))
+    teachers = Teacher.objects.filter(pk=teacher.pk)
+    date = datetime.today().date()
+    students=Student.objects.filter(student_teacher__in=teachers)
+    school_class = SchoolClass.objects.filter(class_teacher__in=teachers)
+    class_st_list, class_ty_list, is_done_list, class_pk, expire_list= [], [], [], [], []
+    for classes in school_class:
+        if current_time < expired_time:
+            is_expired = False
+        elif current_time >= expired_time:
+            is_expired = True
+        expire_list.append(is_expired)
+        classss = SchoolClass.objects.filter(pk = classes.pk)
+        class_pk.append(classes.slug)
+        student_count = Student.objects.filter(student_class__in=classss).count()
+        class_st_list.append(student_count)
+        is_done = False
+        class_ty_list.append(classes.class_type)
+        class_student = [student.pk for student in Student.objects.filter(student_class__in=classss)]
+        class_attendance = [attendance.student.pk for attendance in Attendance.objects.filter(date=date,teacher__teacher_class__in=classss)]
+        if list(set(class_student) - set(class_attendance)) == []:
+            is_done = True
+        is_done_list.append(is_done)
+
+
+    total_report = zip( class_ty_list, class_st_list, is_done_list, class_pk, expire_list)
+
+
+
+    context={
+        'teacher':teacher, 
+        'school_class':school_class,
+        'students':students, 
+        'attendance_form':attendance_form, 
+        'total_report':total_report,
+        'expire_list':expire_list,
+        'is_expired':is_expired,
+        }
+    return render(request,'attendance/profile/attendance_list.html', context)
+
+
+@login_required
+def TeacherStudentDetailView(request, pk, class_slug, student_slug):
+    teacher = get_object_or_404(Teacher.objects.filter(pk=pk))
+    teachers = Teacher.objects.filter(pk=pk)
+    school_class = get_object_or_404(SchoolClass.objects.filter(slug=class_slug))
+    classes = SchoolClass.objects.filter(slug=class_slug)
+    students = get_object_or_404(Student.objects.filter(slug=student_slug))
+    if (students.present+students.cause+students.absent) > 0:
+        total = round((students.present*100)/(students.present+students.cause+students.absent), 2)
     else:
-        attendance_form = AttendanceForm()
-    return render(request,'attendance/profile/class_list.html', {'registered':registered, 'teacher':teacher, 'school_class':school_class,'students':students, 'attendance_form':attendance_form})
+        total = 0
+    if teacher.user == request.user:
+        if request.method == 'POST':
+            if 'student_delete_btn' in request.POST:
+                obj = students
+                obj.delete()
+                    
+            return  redirect('attendance:teacher_class_detail',pk=teacher.pk, slug=school_class.slug)
+    context = {
+        'teacher':teacher,
+        'teachers':teachers,
+        'school_class':school_class,
+        'classes':classes,
+        'students': students,
+        'total': total,
+    }
+
+    return render(request,'attendance/profile/teacher_student_detail.html', context)
+
+
+@login_required
+def TeacherClassDetailView(request,pk, slug):
+    teacher = get_object_or_404(Teacher.objects.filter(pk=pk))
+    teachers = Teacher.objects.filter(pk=pk)
+    class_school = get_object_or_404(SchoolClass.objects.filter(slug=slug, class_teacher=teacher))
+    all_class = SchoolClass.objects.filter(class_teacher=teacher)
+    
+    students = Student.objects.filter(student_class=class_school)
+    count = students.count()
+    date = datetime.today().date().strftime('%d-%m-%Y')
+
+    if slug==class_school.slug:
+        student_percent_list = []
+        student_list = []
+
+        for student in students:
+            studente = get_object_or_404(Student.objects.filter(slug=student.slug))
+            present = studente.present
+            cause = studente.cause
+            absent = studente.absent
+            if (present + absent + cause) > 0:
+                student_percent = round((100 * present) / (present + absent + cause),2)
+            else:
+                student_percent = 0 
+            student_percent_list.append(student_percent)
+            student_list.append(studente)
+        about_student = zip(student_list, student_percent_list)
+    
+
+        sc_form = StudentForm(request.POST or None)
+        cc_form = ClassForm(request.POST or None)
+        scf_form = CsvModelForm(request.POST or None, request.FILES or None)
+        if request.method == 'POST':
+            if 'student_create_btn' in request.POST:
+                if sc_form.is_valid():
+                    s_create = sc_form.save(commit=False)
+                    s_create.student_class = class_school
+                    s_create.student_teacher = teacher
+                    s_create.student_school = class_school.class_school
+                    s_create.save()
+
+
+            elif 'clas_delete_btn' in request.POST:
+                obj = class_school
+                obj.delete()
+                return  redirect('attendance:teacher_class_detail',pk=teacher.pk)
+
+            return  redirect('attendance:teacher_class_detail',pk=teacher.pk, slug=class_school.slug)
+
+        context = {
+            'teachers':teachers,
+            'teacher':teacher,
+            'class_school':class_school,
+
+            'students': students,
+            'sc_form':sc_form,
+            'scf_form':scf_form,
+            'cc_form':cc_form,
+            'about_student':about_student,
+        }
+
+        return render(request,'attendance/profile/teacher_class_detail.html', context)
+    return render(request,'attendance/profile/teacher_class_detail.html', context)
+    
 
 class TeacherProfileView(LoginRequiredMixin, DetailView):
     model = Teacher
@@ -891,7 +1000,7 @@ def attendance_form(request,pk, slug):
                     'teacher': teacher,
                 }
                 # return render(request, 'attendance/profile.html', context)
-                return redirect('attendance:teacher_class_list', pk=teacher.pk)
+                return redirect('attendance:attendance_list', pk=teacher.pk)
             else:
                 error = "Something went wrong"
                 context = {
@@ -919,6 +1028,116 @@ def attendance_form(request,pk, slug):
 
     else:
         return HttpResponse(status=403)
+
+
+class TeacherSchoolRankingView(LoginRequiredMixin, DetailView):
+    model = Teacher
+    template_name = 'attendance/profile/teacher_attendance_ranking.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(TeacherSchoolRankingView, self).get_context_data(**kwargs)
+        context['students'] = Student.objects.filter(student_teacher=context['teacher'])
+        context['classes'] = SchoolClass.objects.filter(class_teacher=context['teacher'])
+        context['date'] = datetime.today().date()
+        class_list, student_list, day_list, week_list = [], [], [], []
+        for classe in context['classes']:
+            t_d_p = 0
+            class_list.append(classe.class_type)
+            class_student = Student.objects.filter(student_class=classe)
+            student_list.append(class_student.count())
+            today_attendance = Attendance.objects.filter(date=context['date'], teacher__teacher_class=classe)
+            for i in today_attendance:
+                
+                if (classe.class_type) == i.student.student_class.class_type:
+                    if i.mark_attendance == 'Bor':
+                        t_d_p += 1
+            if class_student.count() > 0 and t_d_p > 0:           
+                d_c_a = round((100 * t_d_p)/class_student.count(),2)
+            else:
+                d_c_a = "Natija topilmadi"
+            day_list.append(d_c_a)
+        for classe in context['classes']:
+            t_w_p = 0
+            class_student = Student.objects.filter(student_class=classe)
+            week_attendance = Attendance.objects.filter(date__week=context['date'].isocalendar()[1],teacher__teacher_class=classe).exclude(date__week_day=1)
+            for i in week_attendance:
+                if (classe.class_type) == i.student.student_class.class_type and i.mark_attendance == 'Bor':
+                    t_w_p += 1            
+            if class_student.count() > 0 and t_w_p > 0:
+                if datetime.today().weekday()<6:
+                    w_c_a = round((100 * t_w_p)/(class_student.count() * (datetime.today().weekday() + 1)), 2)
+                elif datetime.today().weekday()==6:    
+                    w_c_a = round((100 * t_w_p)/(class_student.count() * (datetime.today().weekday())), 2)
+
+            else:
+                w_c_a = 0
+            week_list.append(w_c_a)
+
+        context["ranking"] = zip(class_list, student_list, day_list, week_list  )
+            
+        return context
+
+
+
+
+
+class AllSchoolsRankingView(LoginRequiredMixin, DetailView):
+    template_name = 'attendance/profile/schools_ranking_list.html'
+    model = Teacher
+    def get_context_data(self, **kwargs):  
+        context = super(AllSchoolsRankingView, self).get_context_data(**kwargs)
+        context['all_schools'] = School.objects.all()
+        context['date'] = datetime.today().date()
+        class_list, student_list, day_list, week_list = [], [], [], []
+        for classe in context['all_schools']:
+            t_d_p = 0
+            class_list.append(classe.school_name)
+            class_student = Student.objects.filter(student_school=classe)
+            student_list.append(class_student.count())
+            today_attendance = Attendance.objects.filter(date=context['date'], student__student_school=classe)
+            for i in today_attendance:
+                
+                if (classe.school_name) == i.student.student_school.school_name:
+                    if i.mark_attendance == 'Bor':
+                        t_d_p += 1
+            if class_student.count() > 0 and t_d_p > 0:           
+                d_c_a = round((100 * t_d_p)/class_student.count(),2)
+            else:
+                d_c_a = "Natija topilmadi"
+            day_list.append(d_c_a)
+        for classe in context['all_schools']:
+            t_w_p = 0
+            class_student = Student.objects.filter(student_school=classe)
+            week_attendance = Attendance.objects.filter(date__week=context['date'].isocalendar()[1],student__student_school=classe).exclude(date__week_day=1)
+            for i in week_attendance:
+                if (classe.school_name) == i.student.student_school.school_name and i.mark_attendance == 'Bor':
+                    t_w_p += 1            
+            if class_student.count() > 0 and t_w_p > 0:
+                if datetime.today().weekday()<6:
+                    w_c_a = round((100 * t_w_p)/(class_student.count() * (datetime.today().weekday() + 1)), 2)
+                elif datetime.today().weekday()==6:    
+                    w_c_a = round((100 * t_w_p)/(class_student.count() * (datetime.today().weekday())), 2)
+
+            else:
+                w_c_a = 0
+            week_list.append(w_c_a)
+
+        context["ranking"] = zip(class_list, student_list, day_list, week_list  )
+            
+        return context
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # ##############################

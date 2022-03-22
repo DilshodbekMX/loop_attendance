@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>{% block title %}Welcome {{ user.username }}{% endblock %}</title>
+    <title>{% block title %} {{ user.teacheruser.work_place }}{% endblock %}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/6.5.95/css/materialdesignicons.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/4.1.5/css/flag-icons.min.css" />
     <link rel="stylesheet" href="{% static 'assets/vendors/css/vendor.bundle.base.css' %}" />
@@ -49,7 +49,7 @@
         </div>
         <ul class="nav">
           <li class="nav-item nav-profile">
-            <a href="{% url 'attendance:profile' user.username  %}" class="nav-link">
+            <a href="{% url 'attendance:profile' teacher.pk  %}" class="nav-link">
               <div class="nav-profile-text d-flex flex-column pr-3">
                 {% if user.first_name and user.last_name %}
                   <span class="font-weight-medium mb-2">{{user.teacheruser.first_name}} {{user.teacheruser.last_name}}</span>
@@ -73,7 +73,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'attendance:teacher_class_list' pk=teacher.id %}">
+            <a class="nav-link" href="{% url 'attendance:attendance_list' pk=teacher.id %}">
               <i class="mdi mdi-account-check menu-icon"></i>
               <span class="menu-title">Davomat Olish</span>
             </a>
@@ -81,22 +81,30 @@
           <li class="nav-item">
             <a class="nav-link" href="{% url 'attendance:user_attendance_report' pk=teacher.id%}">
               <i class="mdi mdi-check-circle menu-icon"></i>
-              <span class="menu-title">Maktab Davomati</span>
+              <span class="menu-title">Kunlik Davomat</span>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'attendance:admin_school_list'  %}">
+            <a class="nav-link" href="{% url 'attendance:teacher_attendance_ranking' pk=teacher.pk  %}">
               <i class="mdi mdi-chart-areaspline menu-icon"></i>
               <span class="menu-title">Davomat Reytingi</span>
             </a>
           </li>
-
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'attendance:schools_ranking_list' pk=teacher.pk  %}">
+              <i class="mdi mdi-chart-areaspline menu-icon"></i>
+              <span class="menu-title">Maktablararo Reyting</span>
+            </a>
+          </li>
           <li class="nav-item sidebar-actions">
             <div class="nav-link">
               <div class="mt-4">
-       
+                
                 <ul class="mt-4 pl-0">
-                  
+                  <li><a class="nav-link" href="{% url 'attendance:logout_user'  %}">
+                    <i class="mdi mdi-help-circle menu-icon"></i>
+                    <span class="menu-title">Yordam</span>
+                  </a></li>
                   <li><a class="nav-link" href="{% url 'attendance:logout_user'  %}">
                     <i class="mdi mdi-exit-to-app menu-icon"></i>
                     <span class="menu-title">Chiqish</span>
@@ -109,115 +117,131 @@
         </ul>
       </nav>
       <div class="container-fluid page-body-wrapper">
-        <nav class="navbar col-lg-12 col-12 p-lg-0 fixed-top d-flex flex-row">
-          <div class="navbar-menu-wrapper d-flex align-items-stretch justify-content-between">
-            <a class="navbar-brand brand-logo-mini align-self-center d-lg-none" href="{% url 'attendance:profile' teacher.pk %}"><img src="{% static 'assets/images/XTV.png' %}" alt="logo" /></a>
-            <button class="navbar-toggler navbar-toggler align-self-center mr-2" type="button" data-toggle="minimize">
-              <i class="mdi mdi-menu"></i>
-            </button>
-            <ul class="navbar-nav">
-              <li class="nav-item dropdown">
-                <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" data-toggle="dropdown">
-                  <i class="mdi mdi-bell-outline"></i>
-                  <span class="count count-varient1">7</span>
-                </a>
-                <div class="dropdown-menu navbar-dropdown navbar-dropdown-large preview-list" aria-labelledby="notificationDropdown">
-                  <h6 class="p-3 mb-0">Bildirishnomalar</h6>
-                  <a class="dropdown-item preview-item">
-
-                    <div class="preview-item-content">
-                      <p class="mb-0"> Dany Miles <span class="text-small text-muted">commented on your photo</span>
-                      </p>
-                    </div>
-                  </a>
-                  <a class="dropdown-item preview-item">
-
-                    <div class="preview-item-content">
-                      <p class="mb-0"> James <span class="text-small text-muted">posted a photo on your wall</span>
-                      </p>
-                    </div>
-                  </a>
-                  <a class="dropdown-item preview-item">
-     
-                    <div class="preview-item-content">
-                      <p class="mb-0"> Alex <span class="text-small text-muted">just mentioned you in his post</span>
-                      </p>
-                    </div>
-                  </a>
-                  <div class="dropdown-divider"></div>
-                  <p class="p-3 mb-0">View all activities</p>
-                </div>
-              </li>
-              <li class="nav-item dropdown d-none d-sm-flex">
-                <a class="nav-link count-indicator dropdown-toggle" id="messageDropdown" href="#" data-toggle="dropdown">
-                  <i class="mdi mdi-email-outline"></i>
-                  <span class="count count-varient2">5</span>
-                </a>
-                <div class="dropdown-menu navbar-dropdown navbar-dropdown-large preview-list" aria-labelledby="messageDropdown">
-                  <h6 class="p-3 mb-0">Xabarlar</h6>
-                  <a class="dropdown-item preview-item">
-                    <div class="preview-item-content flex-grow">
-                      <span class="badge badge-pill badge-success">Request</span>
-                      <p class="text-small text-muted ellipsis mb-0"> Suport needed for user123 </p>
-                    </div>
-                    <p class="text-small text-muted align-self-start"> 4:10 PM </p>
-                  </a>
-                  <a class="dropdown-item preview-item">
-                    <div class="preview-item-content flex-grow">
-                      <span class="badge badge-pill badge-warning">Invoices</span>
-                      <p class="text-small text-muted ellipsis mb-0"> Invoice for order is mailed </p>
-                    </div>
-                    <p class="text-small text-muted align-self-start"> 4:10 PM </p>
-                  </a>
-                  <a class="dropdown-item preview-item">
-                    <div class="preview-item-content flex-grow">
-                      <span class="badge badge-pill badge-danger">Projects</span>
-                      <p class="text-small text-muted ellipsis mb-0"> New project will start tomorrow </p>
-                    </div>
-                    <p class="text-small text-muted align-self-start"> 4:10 PM </p>
-                  </a>
-                  <h6 class="p-3 mb-0">See all activity</h6>
-                </div>
-              </li>
-              <li class="nav-item nav-search border-0 ml-1 ml-md-3 ml-lg-5 d-none d-md-flex">
-                <form class="nav-link form-inline mt-2 mt-md-0">
-                  <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Search" />
-                    <div class="input-group-append">
-                      <span class="input-group-text">
-                        <i class="mdi mdi-magnify"></i>
-                      </span>
-                    </div>
+                <!-- THEME SETTING -->      
+                <div id="theme-settings" class="settings-panel">
+                  <i class="settings-close mdi mdi-close"></i>
+                  <p class="settings-heading">SIDEBAR SKINS</p>
+                  <div class="sidebar-bg-options selected" id="sidebar-default-theme">
+                    <div class="img-ss rounded-circle bg-light border mr-3"></div> Default
                   </div>
-                </form>
-              </li>
-            </ul>
-            <ul class="navbar-nav navbar-nav-right ml-lg-auto">
-
-              <li class="nav-item nav-profile dropdown border-0">
-                <a class="nav-link dropdown-toggle" id="profileDropdown" href="#" data-toggle="dropdown">
-                  <i class="mdi mdi mdi-account-circle mr-2 text-success"></i>
-                  <span class="profile-name">{{teacher.first_name}} {{teacher.last_name}}</span>
-                </a>
-                <div class="dropdown-menu navbar-dropdown w-100" aria-labelledby="profileDropdown">
-                  <a class="dropdown-item" href="{% url 'attendance:profile_detail' teacher.pk %}">
-                    <i class="mdi mdi-account-box-outline mr-2 text-info"></i> Shaxsiy ma'lumotlarim </a>
-                  <a class="dropdown-item" href="{% url 'attendance:logout_user' %}">
-                    <i class="mdi mdi-logout mr-2 text-danger"></i> Chiqish </a>
+                  <div class="sidebar-bg-options" id="sidebar-dark-theme">
+                    <div class="img-ss rounded-circle bg-dark border mr-3"></div> Dark
+                  </div>
+                  <p class="settings-heading mt-2">HEADER SKINS</p>
+                  <div class="color-tiles mx-0 px-4">
+                    <div class="tiles light"></div>
+                    <div class="tiles dark"></div>
+                  </div>
                 </div>
-              </li>
-            </ul>
-            <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
-              <span class="mdi mdi-menu"></span>
-            </button>
-          </div>
-        </nav>
+        
+                <nav class="navbar col-lg-12 col-12 p-lg-0 fixed-top d-flex flex-row">
+                  <div class="navbar-menu-wrapper d-flex align-items-stretch justify-content-between">
+                    <a class="navbar-brand brand-logo-mini align-self-center d-lg-none" href="{% url 'attendance:dashboard'  %}"><img src="{% static 'assets/images/XTV.png' %}" alt="logo" /></a>
+                    <button class="navbar-toggler navbar-toggler align-self-center mr-2" type="button" data-toggle="minimize">
+                      <i class="mdi mdi-menu"></i>
+                    </button>
+                    <ul class="navbar-nav">
+                      <li class="nav-item dropdown">
+                        <!-- <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" data-toggle="dropdown">
+                          <i class="mdi mdi-bell-outline"></i>
+                          <span class="count count-varient1">7</span>
+                        </a>
+                        <div class="dropdown-menu navbar-dropdown navbar-dropdown-large preview-list" aria-labelledby="notificationDropdown">
+                          <h6 class="p-3 mb-0">Bildirishnomalar</h6>
+                          <a class="dropdown-item preview-item">
+        
+                            <div class="preview-item-content">
+                              <p class="mb-0"> Dany Miles <span class="text-small text-muted">commented on your photo</span>
+                              </p>
+                            </div>
+                          </a>
+                          <a class="dropdown-item preview-item">
+        
+                            <div class="preview-item-content">
+                              <p class="mb-0"> James <span class="text-small text-muted">posted a photo on your wall</span>
+                              </p>
+                            </div>
+                          </a>
+                          <a class="dropdown-item preview-item">
+             
+                            <div class="preview-item-content">
+                              <p class="mb-0"> Alex <span class="text-small text-muted">just mentioned you in his post</span>
+                              </p>
+                            </div>
+                          </a>
+                          <div class="dropdown-divider"></div>
+                          <p class="p-3 mb-0">View all activities</p>
+                        </div> -->
+                      </li>
+                      <li class="nav-item dropdown d-none d-sm-flex">
+                        <!-- <a class="nav-link count-indicator dropdown-toggle" id="messageDropdown" href="#" data-toggle="dropdown">
+                          <i class="mdi mdi-email-outline"></i>
+                          <span class="count count-varient2">5</span>
+                        </a>
+                        <div class="dropdown-menu navbar-dropdown navbar-dropdown-large preview-list" aria-labelledby="messageDropdown">
+                          <h6 class="p-3 mb-0">Xabarlar</h6>
+                          <a class="dropdown-item preview-item">
+                            <div class="preview-item-content flex-grow">
+                              <span class="badge badge-pill badge-success">Request</span>
+                              <p class="text-small text-muted ellipsis mb-0"> Suport needed for user123 </p>
+                            </div>
+                            <p class="text-small text-muted align-self-start"> 4:10 PM </p>
+                          </a>
+                          <a class="dropdown-item preview-item">
+                            <div class="preview-item-content flex-grow">
+                              <span class="badge badge-pill badge-warning">Invoices</span>
+                              <p class="text-small text-muted ellipsis mb-0"> Invoice for order is mailed </p>
+                            </div>
+                            <p class="text-small text-muted align-self-start"> 4:10 PM </p>
+                          </a>
+                          <a class="dropdown-item preview-item">
+                            <div class="preview-item-content flex-grow">
+                              <span class="badge badge-pill badge-danger">Projects</span>
+                              <p class="text-small text-muted ellipsis mb-0"> New project will start tomorrow </p>
+                            </div>
+                            <p class="text-small text-muted align-self-start"> 4:10 PM </p>
+                          </a>
+                          <h6 class="p-3 mb-0">See all activity</h6>
+                        </div> -->
+                      </li>
+                      <li class="nav-item nav-search border-0 ml-1 ml-md-3 ml-lg-5 d-none d-md-flex">
+                        <form class="nav-link form-inline mt-2 mt-md-0">
+                          <div class="input-group">
+                            <!-- <input type="text" class="form-control" placeholder="Search" /> -->
+                            <!-- <div class="input-group-append">
+                              <span class="input-group-text">
+                                <i class="mdi mdi-magnify"></i>
+                              </span>
+                            </div> -->
+                          </div>
+                        </form>
+                      </li>
+                    </ul>
+                    <ul class="navbar-nav navbar-nav-right ml-lg-auto">
+        
+                      <li class="nav-item nav-profile dropdown border-0">
+                        <a class="nav-link dropdown-toggle" id="profileDropdown" href="#" data-toggle="dropdown">
+                          <i class="mdi mdi mdi-account-circle mr-2 text-success"></i>
+                          <span class="profile-name">{{user.teacheruser.first_name}} {{user.teacheruser.last_name}}</span>
+                        </a>
+                        <div class="dropdown-menu navbar-dropdown w-100" aria-labelledby="profileDropdown">
+        
+                          <a class="dropdown-item" href="{% url 'attendance:logout_user' %}">
+                            <i class="mdi mdi-logout mr-2 text-primary"></i> Chiqish </a>
+                        </div>
+                      </li>
+                    </ul>
+                    <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
+                      <span class="mdi mdi-menu"></span>
+                    </button>
+                  </div>
+                </nav>
         <div class="main-panel">
         {% block content %}
         {% endblock %}
     <footer class="footer fixed-bottom  d-flex flex-row">
       <div class="d-sm-flex justify-content-center justify-content-sm-between">
-        <span class="text-muted d-block text-center text-sm-center d-sm-inline-block">Copyright ©  Rishton XTB 2022</span>
+        <span class="text-muted d-block text-center text-sm-center d-sm-inline-block">Copyright ©  Rishton XTB  {{date}}</span>
        </div>
     </footer>
   </div>

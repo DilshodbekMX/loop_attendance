@@ -7,6 +7,8 @@
         <div align="center">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="{% url 'attendance:dashboard'%}">Bosh sahifa</a></li>
+              <li class="breadcrumb-item"><a href="{% url 'attendance:admin_school_list'%}">Maktablar ro'yxati</a></li>
               <li class="breadcrumb-item"><a href="{% url 'attendance:admin_school_detail' pk=schools.pk %}">{{school_class.class_school}}</a></li>
               <li class="breadcrumb-item"><a href="{% url 'attendance:admin_class_detail' pk=schools.pk slug=school_class.slug %}">{{school_class.class_type}}</a></li>
               <li class="breadcrumb-item active" aria-current="page"> {{students.student_name}}</li>
@@ -31,6 +33,7 @@
                         <th><h5>Sababli Dars Qoldirgan</h5></th>
                         <th><h5>Sababsiz Dars Qoldirgan</h5></th>
                         <th><h5>Umumiy</h5></th>
+                       
                       </tr>
                     </thead>
                     <tbody>             
@@ -40,6 +43,9 @@
                         <td>{{students.cause}}</td>
                         <td>{{students.absent}}</td>
                         <td>{{total}}</td>
+                        <td>
+                          
+                        </td>
 
                       </tr>
 
@@ -50,6 +56,41 @@
               </div>
             </div>
           </div>
+       
+
+
+            <!-- Class delete Editing start-->
+            <button type="button" class="btn btn-outline-danger btn-fw col-md-3 col-sm-6 " data-bs-toggle="modal" data-bs-target="#exampleModal3{{forloop.counter}}"><i class="mdi mdi-delete"> </i>O'chirib yuborish</button>
+            <div class="modal fade" id="exampleModal3{{forloop.counter}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-md modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h3 class="modal-title" id="exampleModalLabel" align="center">Haqiqatan ham {{schools}}ni {{school_class.class_type}}ini o'chirib yubormoqchimisiz?</h3>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="card">
+                            <div class="card-body">
+                              
+                              <form class="forms-sample" method="post" enctype="multipart/form-data">
+                                <h5>Agar siz ushbu o'quvchini o'chirib yuborsangiz, bu o'quvchi haqidagi barcha ma'lumotlar avtomatik tarzda o'chirib yuboriladi</h5>
+                                <h5>SIZ BUNGA ROZIMISIZ?</h5>
+                                {% csrf_token %}
+                               
+                                <br>
+                                <button type="submit" name="student_delete_btn" class="btn btn-danger mr-2"> Tasdiqlash </button>
+                                <button type="button" class="btn btn-success" data-bs-dismiss="modal">Qaytish</button>
+                              </form>
+                            </div>
+                          </div>
+                    </div>
+         
+                  </div>
+                </div>
+            </div> <!-- Class Delete end-->
+        
+  
+
     </div>
 </div>
 {% endblock %}

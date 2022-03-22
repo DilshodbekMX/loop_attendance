@@ -3,66 +3,39 @@
 {% block content %}
     <div class="content-wrapper">
       <div class="row">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+           
+            <li class="breadcrumb-item"><a href="{% url 'attendance:profile' teacher.pk %}">Bosh Sahifa</a></li>
+            <li class="breadcrumb-item active" aria-current="page"> Sinflar</li>
+          </ol>
+        </nav>
       <div class="col-lg-12 grid-margin stretch-card">
           <div class="card">
             <div class="card-body">
               <h2 class="card-title" align="center">Maktabdagi sinflar ro'yxati</h2>
               <div class="table-responsive">
                 <table class="table table-bordered">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Sinf nomi</th>
-                      <th>O'quvchilar soni</th>             
-                      <th>Sinf haqida</th>
-                      <th>Davomat Olish</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for class in school_class %}                  
-                    <tr>
-                      <td>{{forloop.counter}}</td>
-                      <td>{{class.class_type}}</td>
-                      <td> {{class.class_student.count}} ta</td>
+                  <tr align="center" valign="top">
+                    <th>#</th>
+                    <th><h5>Sinf nomi</h5></th>
+                    <th><h5>Jami <br>o'quvchilar</h5></th>
+                    <th><h5>Davomat <br>reytingi</h5></th>
+                    <th><h5>Sinf haqida</h5></th>
+                  </tr>
+                </thead>
+                <tbody>
+                {%for class, percent in about_class %}                 
+                  <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td>{{class.class_type}}</td>
+                    <td>{{class.class_student.count}}</td>
+                    <td>{{percent}}</td>
                       <td>
-                        <button type="button" class="btn btn-info btn-rounded" data-bs-toggle="modal" data-bs-target="#exampleModal{{forloop.counter}}">Batafsil</button>                        
-                        <div class="modal fade" id="exampleModal{{forloop.counter}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                          <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                              <div class="modal-header">
-                                <h3 class="modal-title" id="exampleModalLabel">{{class}} o'quvchilar ro'yxati</h3>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                              </div>
-                              <div class="modal-body">
-                                <div class="table-responsive">
-                                  <table class="table table-bordered">
-                                    <thead>
-                                      <tr>                                 
-                                        <th>O'quvchi FISH</th>                           
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {% for student in students.all %}
-                                      {% if student.student_class == class %}
-                                      <tr>                                       
-                                        <td><a href="#">{{student.student_name}}</a></td>   
-                                      </tr>
-                                      {%endif %}
-                                      {% endfor %}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                              <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Qaytish</button>                                
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                        <a href="{% url 'attendance:teacher_class_detail' pk=teacher.pk slug=class.slug %}" type="button" class="btn btn-outline-info btn-fw">Batafsil</a>
+                        
                       </td>
-                      <td>
-                       <a class="btn btn-info btn-rounded" href="{% url 'attendance:attendance_form1' pk=teacher.pk slug=class.slug %}">Davomat</a>
-                      </td>
+
                     </tr>
                     {%endfor %}
                   </tbody>

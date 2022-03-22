@@ -29,13 +29,39 @@ bottom: 0;
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
 <div class="content-wrapper pb-0">
   <!-- Username -->
-  <div class="page-header flex-wrap">
-    <h4 class="mb-0"> Assalomu alaykum {{user.first_name}} {{user.last_name}}! <span class="pl-0 h6 pl-sm-2 text-muted d-inline-block">{{date}}</span>
-    </h4>
-    <div class="d-flex">
-      
-      <a href="{% url 'attendance:teacher_class_list' pk=teacher.id %}" class="btn btn-sm ml-3 btn-success">Davomat Olish </a> 
-      <a href="{% url 'attendance:user_attendance_report' pk=teacher.id%}" class="btn btn-sm ml-3 btn-info">Davomat Hisoboti </a> 
+  
+  <div class="row">
+    <div class="col-xl-12 stretch-card grid-margin ">
+      <div class="card">
+        <div class="card-body">
+          {% if is_sunday %}
+          <figure class="text-center">
+            <blockquote class="blockquote">
+              <h5>O'zbekistonning ertangi kuniga ishonchni mustahkamlash, ajdodlarga munosib bo'lish uchun islohotlarni ilmdan boshlash kerak.</h5>
+            </blockquote>
+            <figcaption class="blockquote-footer">
+              Shavkat Mirziyoyev<cite title="Source Title">O'zbekiston Respublikasi Prezidenti </cite>
+            </figcaption>
+          </figure>
+          <p class="text-center">Bugun Yakshanba. Dam olish kuni</p>
+          {%elif not is_sunday %}
+          <div class="page-header flex-wrap">
+            <h4 class="mb-0"> Maktab Bugungi Davomatining {{attendance_percent}} (%) foizi bo'ldi
+            </h4>
+            <h3 id="demo" class="mr-4 "></h3>
+            <div class="d-flex">
+              {% if  is_expired %}
+              <a href="{% url 'attendance:attendance_list' pk=teacher.id %}" class="btn btn-sm ml-3 btn-success">Davomat Olish </a> 
+              {% else %}
+ 
+              <button class="btn btn-sm ml-3 btn-secondary" disabled>Yopildi</button> 
+              {% endif %}
+              <a href="{% url 'attendance:user_attendance_report' pk=teacher.id%}" class="btn btn-sm ml-3 btn-info">Davomat Hisoboti </a> 
+            </div>
+          </div>
+          {%endif%}
+        </div>
+      </div>
     </div>
   </div>
  <div class="row">
@@ -124,14 +150,14 @@ bottom: 0;
           <!-- eng yaxshi davomat -->
           <div class="col-sm-4">
             <div class="card mb-3 mb-sm-0">
-              <div class="card-body py-3 px-4">
+              <div class="card-body py-3 px-3">
                 <p class="m-0 survey-head">Haftada</p>
                 <div class="d-flex justify-content-between align-items-end flot-bar-wrapper">
                   <div>
                     <h3 class="m-0 survey-value">{{wp_percent}} %</h3>
                     <p class="text-success m-0">o'quvchi darsga qatnashdi</p>
                   </div>
-                  <div id="earningChart" class="flot-chart"></div>
+          
                 </div>
               </div>
             </div>
@@ -139,28 +165,28 @@ bottom: 0;
           <!-- eng past davomat -->
           <div class="col-sm-4">
             <div class="card mb-3 mb-sm-0">
-              <div class="card-body py-3 px-4">
+              <div class="card-body py-3 px-3">
                 <p class="m-0 survey-head">Haftada</p>
                 <div class="d-flex justify-content-between align-items-end flot-bar-wrapper">
                   <div>
                     <h3 class="m-0 survey-value">{{wc_percent}} %</h3>
                     <p class="text-warning m-0">o'quvchi sababli dars qoldirdi</p>
                   </div>
-                  <div id="productChart" class="flot-chart"></div>
+                  
                 </div>
               </div>
             </div>
           </div>
           <div class="col-sm-4">
             <div class="card">
-              <div class="card-body py-3 px-4">
+              <div class="card-body py-3 px-3">
                 <p class="m-0 survey-head">Haftada</p>
                 <div class="d-flex justify-content-between align-items-end flot-bar-wrapper">
                   <div>
                     <h3 class="m-0 survey-value">{{wa_percent}} %</h3>
                     <p class="text-danger m-0">o'quvchi sababsiz dars qoldirdi</p>
                   </div>
-                  <div id="orderChart" class="flot-chart"></div>
+             
                 </div>
               </div>
             </div>
@@ -185,6 +211,24 @@ bottom: 0;
 
 
 </div>
+<script>
+  var deadline = new Date({{date}}"," {{expired_time}}).getTime();
+  var x = setInterval(function() {
+  var now = new Date().getTime();
+  var t = deadline - now;
+  var days = Math.floor(t / (1000 * 60 * 60 * 24));
+  var hours = Math.floor((t%(1000 * 60 * 60 * 24))/(1000 * 60 * 60));
+  var minutes = Math.floor((t % (1000 * 60 * 60)) / (1000 * 60));
+  var seconds = Math.floor((t % (1000 * 60)) / 1000);
+  document.getElementById("demo").innerHTML = days + "d " 
+  + hours + "h " + minutes + "m " + seconds + "s ";
+      if (t < 0) {
+          clearInterval(x);
+          document.getElementById("demo").innerHTML = "EXPIRED";
+      }
+  }, 1000);
+  </script>
+
 <script>
   function myFunction() {
     var input, filter, table, tr, td, i, txtValue;

@@ -3,16 +3,36 @@
 {% load static %}
 {% block content %}
 <div class="content-wrapper">
-    <div class="row">
+    
+        <div class="row">
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'attendance:dashboard'%}">Bosh sahifa</a></li>
+                <li class="breadcrumb-item active">Maktab va foydalanuvchi qo'shish</li>
+              </ol>
+            </nav>
         {% if registered %}
         
-            <H1>Yangi Foydalanuvchi Qo'shildi</H1>
-            <li><a href="{% url 'attendance:dashboard' %}" class="nav-link"><i class="fa fa-user-plus" aria-hidden="true"></i> Bosh Oynaga qaytish</a></li>
-            <li><a href="{% url 'attendance:admin_add_user' %}" class="nav-link"><i class="fa fa-user-plus" aria-hidden="true"></i> Register again</a></li>
-        {% else %}
+            <h1 ></h1>
+            <div class="card text-center">
+                <div class="card-header">
+                    *****************
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title">Yangi Foydalanuvchi Qo'shildi</h5>
+                  <p class="card-text">Yangi foydalanuvchi muvafaqqiyatli qo'shildi. Siz yana foydalanuvchi qo'shishingiz yoki bosh oynaga qaytishingiz mumkin.</p>
+                  <a href="{% url 'attendance:admin_add_user' %}" class="btn btn-outline-success btn-fw"><i class="mdi mdi-account-plus" aria-hidden="true"></i> Yana Foydalanuvchi Qo'shish</a>
+                  <a href="{% url 'attendance:dashboard' %}" class="btn btn-outline-info btn-fw"><i class=" mdi mdi-exit-to-app" aria-hidden="true"></i> Bosh Oynaga Qaytish</a>
+                </div>
+                <div class="card-footer text-muted">
+                  *****************
+                </div>
+              </div>
+        
+            {% else %}
 
             <div class="col-12 grid-margin">
-                <h2>Yangi foydalnuvchi qo'shish oynasi</h2>
+                <h2 class="text-center" >Yangi foydalnuvchi qo'shish oynasi</h2>
                 <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Formani to'ldiring</h4>

@@ -16,6 +16,7 @@ urlpatterns = [
     ################################
     path(r'dashboard/', views.AdminDashboardView.as_view(), name='dashboard'),
     path(r'dashboard/school_list/', views.AdminSchoolListView.as_view(), name='admin_school_list'),
+    path(r'dashboard/add_xlsx_file/', views.AdminXlsxFileAdd, name='add_xlsx_file'),
     path(r'dashboard/admin_attendance_list/', views.AdminAttendanceListView.as_view(), name='admin_attendance_list'),
     path(r'dashboard/admin_attendance_list/(?P<pk>[0-9]+)/admin_attendance_report/', views.AdminAttendanceReport, name='admin_attendance_report'),
     path(r'dashboard/admin_attendance_list/(?P<pk>[0-9]+)/admin_attendance_report/download/', views.export_to_csv, name='export_to_csv'),
@@ -23,7 +24,8 @@ urlpatterns = [
     path(r'dashboard/user_detail/(?P<pk>[0-9]+)/', views.AdminUserDetailView, name='admin_user_detail'),
     path(r'dashboard/school_detail/(?P<pk>[0-9]+)/', views.AdminSchoolDetailView, name='admin_school_detail'),
     path(r'dashboard/school_detail/(?P<pk>[0-9]+)/admin_class_detail/(?P<slug>[0-9]+)/', views.ClassDetailView, name='admin_class_detail'),
-    path(r'dashboard/school_detail/(?P<pk>[0-9]+)/admin_class_detail/(?P<str:class_slug>[0-9]+)/admin_student_detail/(?P<slug:student_slug>(0-9)+)/', views.AdminStudentDetailView, name='admin_student_detail'),
+    path(r'dashboard/school_detail/(?P<pk>[0-9]+)/admin_class_detail/(?P<str:class_slug>[0-9]+)/admin_student_detail/(?P<slug:student_slug>(0-9)+)/', 
+    views.AdminStudentDetailView, name='admin_student_detail'),
     
     # ##############################
     #                              # 
@@ -32,7 +34,13 @@ urlpatterns = [
     ################################
     path(r'profile/(?P<pk>[0-9]+)/', views.TeacherDetailView.as_view(), name='profile'),
     path(r'profile/(?P<pk>[0-9]+)/teacher_class_list/', views.TeacherClassListView, name='teacher_class_list'),
+    path(r'profile/(?P<pk>[0-9]+)/teacher_attendance_ranking/', views.TeacherSchoolRankingView.as_view(), name='teacher_attendance_ranking'),
+    path(r'profile/(?P<pk>[0-9]+)/schools_ranking_list/', views.AllSchoolsRankingView.as_view(), name='schools_ranking_list'),
+    path(r'profile/(?P<pk>[0-9]+)/attendance_list/', views.TeacherAttendanceListView, name='attendance_list'),
     path(r'profile/(?P<pk>[0-9]+)/attendance_form1/(?P<slug>[0-9]+)/', views.attendance_form, name='attendance_form1'),
+    path(r'profile/(?P<pk>[0-9]+)/teacher_class_detail/(?P<slug>[0-9]+)/', views.TeacherClassDetailView, name='teacher_class_detail'),
+    path(r'profile/(?P<pk>[0-9]+)/teacher_class_detail/(?P<str:class_slug>[0-9]+)/teacher_student_detail/(?P<slug:student_slug>(0-9)+)/', 
+    views.TeacherStudentDetailView, name='teacher_student_detail'),
     path(r'profile/(?P<pk>[0-9]+)/user_attendance_report/', views.TeacherAttendanceReportView, name='user_attendance_report'),
     path(r'profile/profile_detail/(?P<pk>[0-9]+)/', views.TeacherProfileView.as_view(), name='profile_detail'),
     path(r'profile/profile_detail/(?P<pk>[0-9]+)/user_profile_update/', views.TeacherProfileUpdateView.as_view(), name='user_profile_update'),

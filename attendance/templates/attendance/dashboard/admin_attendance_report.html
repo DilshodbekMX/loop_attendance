@@ -32,7 +32,13 @@
     <div class="container">
         
         <h1 class="mt-4 mb-4">{{ schools}} davomati haqida hisobot</h1><br>
-
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="{% url 'attendance:dashboard'%}">Bosh sahifa</a></li>
+              <li class="breadcrumb-item"><a href="{% url 'attendance:admin_attendance_list'%}">Davomat reytingi</a></li>
+              <li class="breadcrumb-item active">Kunlik davoamt</li>
+            </ol>
+          </nav>
         <div id="accordion">
           <div class="card">
             <div class="card-header" id="headingOne">
